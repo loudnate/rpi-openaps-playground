@@ -3,7 +3,7 @@
 # For development, uncomment the build command, and mount the source directory using the -v argument:
 #   -v=`pwd`:/app \
 #
-
+sh get_static.sh
 docker build -t loudnate/naterade .
 docker run -i -t \
     -p=80:5000 \

@@ -9,10 +9,14 @@ RUN apt-get update && \
 
 RUN easy_install cachetools
 
-ADD . /app
-
 EXPOSE 80
 
+COPY . /app
+
 WORKDIR /app
+
+RUN git init && \
+    git config user.name "Nathan Racklyeft" && \
+    git config user.email loudnate@gmail.com
 
 CMD python app.py
