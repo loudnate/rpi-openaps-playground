@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		<!--
+
+		The MIT License (MIT)
+
+		Copyright (c) 2015 Perceptus.org
+
+		Permission is hereby granted, free of charge, to any person obtaining a copy
+		of this software and associated documentation files (the "Software"), to deal
+		in the Software without restriction, including without limitation the rights
+		to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+		copies of the Software, and to permit persons to whom the Software is
+		furnished to do so, subject to the following conditions:
+
+		The above copyright notice and this permission notice shall be included in all
+		copies or substantial portions of the Software.
+
+		THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+		IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+		FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+		AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+		LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+		OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+		SOFTWARE.
+
+		-->
+
+		<!--
+
+		 .88888.  dP                            888888ba
+		d8'   `88 88                            88    `8b
+		88        88 dP    dP .d8888b. .d8888b. 88     88 dP    dP 88d888b.
+		88   YP88 88 88    88 88'  `"" 88'  `88 88     88 88    88 88'  `88
+		Y8.   .88 88 88.  .88 88.  ... 88.  .88 88    .8P 88.  .88 88    88
+		 `88888'  dP `88888P' `88888P' `88888P' 8888888P  `8888P88 dP    dP
+		                                                       .88
+		                                                   d8888P
+		dP                    888888ba                                                 dP
+		88                    88    `8b                                                88
+		88d888b. dP    dP    a88aaaa8P' .d8888b. 88d888b. .d8888b. .d8888b. 88d888b. d8888P dP    dP .d8888b.    .d8888b. 88d888b. .d8888b.
+		88'  `88 88    88     88        88ooood8 88'  `88 88'  `"" 88ooood8 88'  `88   88   88    88 Y8ooooo.    88'  `88 88'  `88 88'  `88
+		88.  .88 88.  .88     88        88.  ... 88       88.  ... 88.  ... 88.  .88   88   88.  .88       88 dP 88.  .88 88       88.  .88
+		88Y8888' `8888P88     dP        `88888P' dP       `88888P' `88888P' 88Y888P'   dP   `88888P' `88888P' 88 `88888P' dP       `8888P88
+		              .88                                                   88                                                          .88
+		          d8888P                                                    dP                                                      d8888P
+
+		Education is crucial in the treatment of complex and dynamic diseases such as T1D. When patients are aware of the elements that affect
+		variations in their disease, they are able to better understand their situation enabling them to optimize their treatments.
+
+		Accessibility through the primary method of communication in the present: Digital communication. Live data should be accessible when
+		the patient needs it in the easiest possible way.
+
+		Autonomy is the dream of every patient with T1D. Life does not happen while being in front of a computer or staring at data on your
+		phone. Most of the times where deviations happen, patients are busy living their lives.
+
+		Gustavo Muñoz ( @bustavo )
+		Kenneth Stack
+
+		-->
+
+		<!-- FLAT UI -->
+		<!-- Twitter Bootstrap-->
+		<link rel="stylesheet" href="css/bootstrap.min.css" type="text/css" media="screen" title="no title" charset="utf-8">
+		<!-- FLAT UI END-->
+
+		<!-- Google Charts -->
+		<script src="js/jquery-latest.min.js"></script>
+		<script type="text/javascript" src="https://www.google.com/jsapi?autoload={'modules':[{'name':'visualization','version':'1','packages':['corechart']}]}"></script>
+		<!-- Google Charts END -->
+
+		<title>GlucoDyn by Perceptus.org</title>
+
+	</head>
+
+	<body>
+
+		<div class="container">
+
+			<h1 class=".glucodyn-logo">GlucoDyn</h1>
+
+		</div>
+
+		<div class="container" id="chart_container">
+
+			<!-- Google Charts Container -->
+			<div id="curve_chart"></div>
+
+		</div>
+
+		<script src="js/glucodyn/algorithms.js" type="text/javascript" charset="utf-8"></script>
+
+		<!-- Glucodyn Statistics -->
+
+		<div class="container hidden" id="statistics_container">
+
+			<h1 class="glucodyn-section-title">Statistics</h1>
+
+			<div class="row">
+
+				<div class="col-xs-2">
+					Avg
+				</div>
+
+				<div class="col-xs-2">
+					Max
+				</div>
+
+				<div class="col-xs-2">
+					Min
+				</div>
+
+				<div class="col-xs-2">
+					SD
+				</div>
+
+			</div>
+
+			<div class="row">
+
+				<div class="col-xs-2">
+					<span id="stats_avg">NA</span> mg/dl
+				</div>
+
+				<div class="col-xs-2">
+					<span id="stats_max">NA</span> mg/dl
+				</div>
+
+				<div class="col-xs-2">
+					<span id="stats_min">NA</span> mg/dl
+				</div>
+
+				<div class="col-xs-2">
+					<span id="stats_std">NA</span> mg/dl
+				</div>
+
+			</div>
+
+			<br>
+
+		</div>
+
+		<!-- Glucodyn Statistics END -->
+
+		<!-- Input History -->
+
+		<div class="container hidden" id="input_history_container">
+
+			<h1 class="glucodyn-section-title">Input History</h1>
+
+			<div class="row">
+
+				<!-- This is where input history gets added -->
+				<div class="col-xs-12" id="input_history">
+
+				</div>
+
+			</div>
+
+			<br>
+
+		</div>
+
+		<!-- Input History END -->
+
+    <script src="js/glucodyn/interfase.js" type="text/javascript" charset="utf-8"></script>
+
+    <script type="text/javascript">
+      userdata = {{ userdata|tojson|safe }};
+      reloadGraphData();
+    </script>
+
+    <div class="container">
+      <a href="javascript:$('#debug-info').toggleClass('hidden')">Debug info</a>
+      <pre id="debug-info" class="hidden">
+userdata = {{ userdata|tojson }};
+
+{{ cache_info|pprint(true) }};
+      </pre>
+    </div>
+
+	</body>
+
+</html>

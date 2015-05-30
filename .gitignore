@@ -56,3 +56,8 @@ docs/_build/
 
 # PyBuilder
 target/
+
+
+## Third-party static files
+static/js/jquery-latest.min.js
+static/css/bootstrap.min.css

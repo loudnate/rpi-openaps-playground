@@ -7,6 +7,8 @@ RUN apt-get update && \
     --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
 
+RUN easy_install cachetools
+
 ADD . /app
 
 EXPOSE 80
