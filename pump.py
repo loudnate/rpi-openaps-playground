@@ -3,6 +3,7 @@ Interface for openaps device "pump"
 
 TODO: Document exceptions
 """
+from collections import deque
 from datetime import timedelta
 from dateutil import parser
 from itertools import cycle
@@ -15,7 +16,7 @@ from cachetools import ttl_cache
 # Caching
 #
 
-# Scatter long-lived caches by 6-minute intervals so a 5-minute cycle doesn't end up with all misses.
+# Scatter long-lived caches by 6-minute intervals so a 5-minute cycle doesn't end up with all misses
 _cache_scatter_minutes = cycle(range(-49, 0, 7))
 
 
@@ -32,7 +33,10 @@ def _proxy_cache(from_func, to_func):
 
 
 class _CacheInfo():
-    def __call__(self, *args, **kwargs):
+    def __init__(self):
+        pass
+
+    def __call__(self):
         import inspect
         module = inspect.getmodule(self.__class__)
         members = inspect.getmembers(module, lambda value: hasattr(value, 'cache_info'))
@@ -95,12 +99,14 @@ def clock_datetime():
     return parser.parse(pump_datetime_iso)
 
 
-@lru_cache(maxsize=1)  # memoize just the most-recent call
+@lru_cache(maxsize=1)
 def _latest_glucose_entry_in_range(from_datetime, to_datetime):
-    """Returns the latest glucose history entry from 15 minutes prior to the specified time.
+    """Returns the latest glucose history entry in the specified range
 
-    :param pump_datetime:
-    :type pump_datetime: datetime.datetime
+    :param from_datetime:
+    :type from_datetime: datetime.datetime
+    :param to_datetime:
+    :type to_datetime: datetime.datetime
     :return: A dictionary describing the glucose reading, or None if no glucose readings were found
     :rtype: dict|NoneType
     """
@@ -146,10 +152,41 @@ def glucose_level_at_datetime(pump_datetime):
 _proxy_cache(_latest_glucose_entry_in_range, glucose_level_at_datetime)
 
 
+@lru_cache(maxsize=1)
+def _history_in_range(from_datetime, to_datetime):
+    next_page_num = 0
+    last_datetime = to_datetime
+    history_queue = deque()
+    # Expect entries may be out-of-order up to this amount
+    time_discrepancy = timedelta(minutes=5)
+    results = []
+
+    while from_datetime <= last_datetime + time_discrepancy:
+        # If we're out of entries, get the next page
+        if len(history_queue) == 0:
+            history_queue.extend(json.loads(_pump_output("read_history_data", str(next_page_num))))
+            next_page_num += 1
+        entry = history_queue.popleft()
+        try:
+            last_datetime = parser.parse(entry.get("timestamp"))
+        except (AttributeError, ValueError):
+            pass
+        entry["timestamp"] = last_datetime
+
+        if last_datetime >= from_datetime:
+            results.append(entry)
+
+    return results
+
+
 def history_in_range(from_datetime, to_datetime):
-    query_datetime = from_datetime
-    if len(_pump_history) > 0:
-        query_datetime = _pump_history[0]["timestamp"]
+    # truncate the seconds to create a 60s ttl
+    return _history_in_range(
+        from_datetime.replace(second=0, microsecond=0),
+        to_datetime.replace(second=0, microsecond=0)
+    )
+
+_proxy_cache(_history_in_range, history_in_range)
 
 
 @ttl_cache(ttl=24 * 60 * 60 + next(_cache_scatter_minutes))

@@ -178,9 +178,11 @@
     <div class="container">
       <a href="javascript:$('#debug-info').toggleClass('hidden')">Debug info</a>
       <pre id="debug-info" class="hidden">
-userdata = {{ userdata|tojson }};
+userdata = {{ userdata|tojson }}
 
-{{ cache_info|pprint(true) }};
+{{ cache_info|pprint(true) }}
+
+{{ raw_history|pprint(true) }}
       </pre>
     </div>
 

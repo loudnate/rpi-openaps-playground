@@ -1,3 +1,4 @@
+from datetime import timedelta
 from flask import Flask
 from flask import render_template
 
@@ -26,7 +27,11 @@ def glucodyn():
     return render_template(
         'glucodyn.html',
         userdata=settings,
-        cache_info=pump.cache_info()
+        cache_info=pump.cache_info(),
+        raw_history=pump.history_in_range(
+            pump_datetime - timedelta(hours=settings["simlength"]),
+            pump_datetime
+        )
     )
 
 if __name__ == "__main__":
