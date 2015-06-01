@@ -16,7 +16,7 @@ from cachetools import ttl_cache
 #
 
 # Scatter long-lived caches by 6-minute intervals so a 5-minute cycle doesn't end up with all misses.
-cache_scatter_minutes = cycle(range(-49, 0, 7))
+_cache_scatter_minutes = cycle(range(-49, 0, 7))
 
 
 def _proxy_cache(from_func, to_func):
@@ -45,7 +45,7 @@ cache_info = _CacheInfo()
 #
 
 
-@ttl_cache(ttl=24 * 60 * 60 + next(cache_scatter_minutes))
+@ttl_cache(ttl=24 * 60 * 60 + next(_cache_scatter_minutes))
 def _carb_ratio_schedule():
     """
 
@@ -96,16 +96,32 @@ def clock_datetime():
 
 
 @lru_cache(maxsize=1)  # memoize just the most-recent call
-def _glucose_history_at_datetime(pump_datetime):
+def _latest_glucose_entry_in_range(from_datetime, to_datetime):
+    """Returns the latest glucose history entry from 15 minutes prior to the specified time.
+
+    :param pump_datetime:
+    :type pump_datetime: datetime.datetime
+    :return: A dictionary describing the glucose reading, or None if no glucose readings were found
+    :rtype: dict|NoneType
+    """
     glucose_pages_dict = json.loads(
         _pump_output(
             "filter_glucose_date",
-            (pump_datetime - timedelta(minutes=15)).isoformat(),
-            pump_datetime.isoformat()
+            from_datetime.isoformat(),
+            to_datetime.isoformat()
         )
     )
     last_page = glucose_pages_dict["end"]
-    return json.loads(_pump_output("read_glucose_data", str(last_page)))
+    glucose_history = json.loads(_pump_output("read_glucose_data", str(last_page)))
+
+    current_glucose_dict = next(
+        (x for x in reversed(glucose_history) if x["name"] in ("GlucoseSensorData", "CalBGForGH")),
+        {}
+    )
+
+    if from_datetime <= parser.parse(current_glucose_dict["date"]) <= to_datetime:
+        return current_glucose_dict
+    return None
 
 
 def glucose_level_at_datetime(pump_datetime):
@@ -119,21 +135,24 @@ def glucose_level_at_datetime(pump_datetime):
     :rtype: int|NoneType
     """
     # truncate the seconds to create a 60s ttl
-    pump_datetime = pump_datetime.replace(second=0, microsecond=0)
+    to_datetime = pump_datetime.replace(second=0, microsecond=0)
+    from_datetime = to_datetime - timedelta(minutes=15)
 
-    glucose_history = _glucose_history_at_datetime(pump_datetime)
+    glucose_history_dict = _latest_glucose_entry_in_range(from_datetime, to_datetime) or {}
 
-    current_glucose_dict = next(
-        (x for x in reversed(glucose_history) if x["name"] in ("GlucoseSensorData", "CalBGForGH")),
-        {}
-    )
-    return current_glucose_dict.get("sgv", current_glucose_dict.get("amount", None))
+    return glucose_history_dict.get("sgv", glucose_history_dict.get("amount", None))
 
 
-_proxy_cache(_glucose_history_at_datetime, glucose_level_at_datetime)
+_proxy_cache(_latest_glucose_entry_in_range, glucose_level_at_datetime)
 
 
-@ttl_cache(ttl=24 * 60 * 60 + next(cache_scatter_minutes))
+def history_in_range(from_datetime, to_datetime):
+    query_datetime = from_datetime
+    if len(_pump_history) > 0:
+        query_datetime = _pump_history[0]["timestamp"]
+
+
+@ttl_cache(ttl=24 * 60 * 60 + next(_cache_scatter_minutes))
 def insulin_action_curve():
     """
 
@@ -144,7 +163,7 @@ def insulin_action_curve():
     return settings_dict["insulin_action_curve"]
 
 
-@ttl_cache(ttl=24 * 60 * 60 + next(cache_scatter_minutes))
+@ttl_cache(ttl=24 * 60 * 60 + next(_cache_scatter_minutes))
 def _insulin_sensitivity_schedule():
     insulin_sensitivies_dict = json.loads(_pump_output("read_insulin_sensitivies"))
 
