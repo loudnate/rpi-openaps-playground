@@ -5,47 +5,47 @@ function reloadGraphData() {
   var dt=simt/n;
 
   for (i=0;i<n;i++) {
-     simbg[i]=userdata.bginitial; 
+     simbg[i]=userdata.bginitial;
      simbgc[i]=0.0;
      simbgi[i]=0.0;
    }
-                                            
-  for (j = 0; j < uevent.length; j++) { 
+
+  for (j = 0; j < uevent.length; j++) {
 
     if ( uevent[j] && uevent.etype != "" ) {
-    
+
      for (i=0; i<n;i++) {
          if(uevent[j].etype=="carb") {
            simbgc[i] = simbgc[i]+deltaBGC(i*dt-uevent[j].time,userdata.sensf,userdata.cratio,uevent[j].grams,uevent[j].ctype)
-         } else if(uevent[j].etype=="bolus") { 
-           simbgi[i] = simbgi[i]+deltaBGI(i*dt-uevent[j].time,uevent[j].units,userdata.sensf,userdata.idur) 
+         } else if(uevent[j].etype=="bolus") {
+           simbgi[i] = simbgi[i]+deltaBGI(i*dt-uevent[j].time,uevent[j].units,userdata.sensf,userdata.idur)
          } else {
            simbgi[i]=simbgi[i]+deltatempBGI((i*dt),uevent[j].dbdt,userdata.sensf,userdata.idur,uevent[j].t1,uevent[j].t2);
-         }           
+         }
      }
-    
+
     }
-                
+
    }
-   
+
    RecommendedMaxSimTime(0);
-   
+
    var predata = new google.visualization.DataTable();
    predata.addColumn('number', 'Time'); // Implicit domain label col.
    predata.addColumn('number', 'Resulting Blood Sugar mg/dl'); // Implicit series 1 data col.
-            
+
    if ( userdata.stats == 1 ) {
-    
+
      // Show stats table
      $("#statistics_container").removeClass("hidden");
-    
+
      if ( userdata.inputeffect == 1 ) {
 
        predata.addColumn('number', 'Carb effect on Blood Sugar mg/dl'); // Implicit series 1 data col.
        predata.addColumn('number', 'Insulin effect on Blood Sugar mg/dl'); // Implicit series 1 data col.
-       
+
      }
-    
+
      predata.addColumn('number', 'Average mg/dl');
      predata.addColumn('number', 'Min mg/dl');
      predata.addColumn('number', 'Max mg/dl');
@@ -55,17 +55,17 @@ function reloadGraphData() {
      }
 
      var stats = GlucodynStats(simbg);
-     
+
      for (i=0;i<n;i++) {
         if ( userdata.inputeffect == 1 ){
-          predata.addRow([(dt*i)+1,simbg[i],userdata.bginitial+simbgc[i],userdata.bginitial+simbgi[i],stats[0], stats[2], stats[3]]);                
+          predata.addRow([(dt*i)+1,simbg[i],userdata.bginitial+simbgc[i],userdata.bginitial+simbgi[i],stats[0], stats[2], stats[3]]);
         }else{
           predata.addRow([(dt*i)+1,simbg[i],stats[0], stats[2], stats[3]]);
         }
      }
-     
+
      if ( userdata.inputeffect == 1 ) {
-       
+
        var options = {
          height: 500,
          backgroundColor: 'transparent',
@@ -82,7 +82,7 @@ function reloadGraphData() {
          },
          legend: {
            textStyle: {
-             fontSize: 14 
+             fontSize: 14
            }
          },
          series: {
@@ -96,9 +96,9 @@ function reloadGraphData() {
          chartArea: {'width': '90%', 'height': '80%'},
          legend: {'position': 'top'}
        };
-       
+
      } else {
-       
+
        var options = {
          height: 500,
          backgroundColor: 'transparent',
@@ -115,7 +115,7 @@ function reloadGraphData() {
          },
          legend: {
            textStyle: {
-             fontSize: 14 
+             fontSize: 14
            }
          },
          series: {
@@ -127,9 +127,9 @@ function reloadGraphData() {
          chartArea: {'width': '90%', 'height': '80%'},
          legend: {'position': 'top'}
        };
-       
+
      }
-     
+
    } else {
 
      // Hide stats table
@@ -138,27 +138,27 @@ function reloadGraphData() {
      $("#stats_min").text(Math.round("NA"));
      $("#stats_max").text(Math.round("NA"));
      $("#stats_std").text(Math.round("NA"));
-     
+
      if ( userdata.inputeffect == 1 ) {
 
        predata.addColumn('number', 'Carb effect on Blood Sugar mg/dl'); // Implicit series 1 data col.
        predata.addColumn('number', 'Insulin effect on Blood Sugar mg/dl'); // Implicit series 1 data col.
-     
+
      }
-     
+
      for (i=0;i<n;i++) {
        simbg[i]=userdata.bginitial+simbgc[i]+simbgi[i];
-       
+
        if ( userdata.inputeffect == 1 ) {
-         predata.addRow([(dt*i)+1,simbg[i],userdata.bginitial+simbgc[i],userdata.bginitial+simbgi[i]]);               
+         predata.addRow([(dt*i)+1,simbg[i],userdata.bginitial+simbgc[i],userdata.bginitial+simbgi[i]]);
        }else{
          predata.addRow([(dt*i)+1,simbg[i]]);
        }
 
      }
-    
+
      if ( userdata.inputeffect == 1 ) {
-       
+
        var options = {
          height: 500,
          backgroundColor: 'transparent',
@@ -175,7 +175,7 @@ function reloadGraphData() {
          },
          legend: {
            textStyle: {
-             fontSize: 14 
+             fontSize: 14
            }
          },
          series: {
@@ -186,9 +186,9 @@ function reloadGraphData() {
          chartArea: {'width': '90%', 'height': '80%'},
          legend: {'position': 'top'}
        };
-       
+
      } else {
-       
+
        var options = {
          height: 500,
          backgroundColor: 'transparent',
@@ -205,7 +205,7 @@ function reloadGraphData() {
          },
          legend: {
            textStyle: {
-             fontSize: 14 
+             fontSize: 14
            }
          },
          series: {
@@ -214,148 +214,74 @@ function reloadGraphData() {
          chartArea: {'width': '90%', 'height': '80%'},
          legend: {'position': 'top'}
        };
-       
+
      }
-     
+
    }
-     
+
    var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
 
    chart.draw(predata, options);
-                            
+
 }
- 
+
 // Event History
 function addEventHistory() {
-  
+
   var event = uevent[uevent.length - 1];
   var event_index = uevent.length - 1;
   var event_id = event_index
   var description = ""
-  
+
   if(event.etype == "carb") {
     description = "<span id='amount_label_" + event_id +"'>" + event.grams + "</span> gr of carbs (" + event.ctype + " min absorption time)";
     description_b = "Taken @ min <span id='time_label_" + event_id +"'>"+ event.time +"</span>"
-  } else if(event.etype=="bolus") { 
+  } else if(event.etype=="bolus") {
     description = "<span id='amount_label_" + event_id +"'>" + event.units + "</span> U insulin input";
     description_b = "Taken @ min <span id='time_label_" + event_id +"'>"+ event.time +"</span>"
   } else if (event.etype=="tempbasal") {
     description = "" + event.dbdt + " U/min temp basal input";
     description_b = "From min "+ event.t1 +" to min "+ event.t2 +""
-  }           
-              
-  if(event.etype == "carb" || event.etype == "bolus") {
-    
-    $("#input_history").append("<div class='row' class='history_row' id='uevent_" + event_id +"'><div class='col-xs-12'><div class='row'><div class='col-xs-6'>" + description + "</div><div class='col-xs-6'><div class='col-xs-10'>" + description_b + "</div><div class='col-xs-2'><a id='' href='#new_event_link' class='' onclick='removeEvent("+ event_id +");'><span class='fui-trash'></span></a></div></div></div><div class='row'><div class='col-xs-6'><div id='history_amount_slider_" + event_id +"' class='ui-slider'></div></div><div class='col-xs-6'><div id='history_time_slider_" + event_id +"' class='ui-slider'></div></div></div></div></div>");
-    
-    $("#history_time_slider_" + event_id).slider({
-      min: 0,
-      max: simt,
-      step: 1,
-      value: event.time,
-      orientation: 'horizontal',
-      range: false,
-      slide: function(event, ui) {
-        $("#time_label_" + event_id).text(ui.value);
-        
-        for (i=0;i<(uevent.length);i++) {
-          if ( uevent[i].id == event_id ) {
-            uevent[i].time = ui.value;
-          }
-        }
-        
-        reloadGraphData(); 
-      }
-    });
-    
-    if(event.etype == "carb") {
-      
-      $("#history_amount_slider_" + event_id).slider({
-        min: 0,
-        max: 200,
-        step: 0.5,
-        value: event.grams,
-        orientation: 'horizontal',
-        range: false,
-        slide: function(event, ui) {
-          $("#amount_label_" + event_id).text(ui.value);
-
-          for (i=0;i<(uevent.length);i++) {
-            if ( uevent[i].id == event_id ) {
-              uevent[i].grams = ui.value;
-            }
-          }
-
-          reloadGraphData();          
-        }
-      });
-      
-    } else if (event.etype == "bolus") {  
-      
-      $("#history_amount_slider_" + event_id).slider({
-        min: 0,
-        max: 20,
-        step: 0.1,
-        value: event.units,
-        orientation: 'horizontal',
-        range: false,
-        slide: function(event, ui) {
-          $("#amount_label_" + event_id).text(ui.value);
-
-          for (i=0;i<(uevent.length);i++) {
-            if ( uevent[i].id == event_id ) {
-              uevent[i].units = ui.value;
-            }
-          }
-
-          reloadGraphData();          
-        }
-      });
-      
-    }
-    
-  } else {
-    
-    $("#input_history").append("<div class='row' id='uevent_" + event_id +"'><div class='col-xs-10'>" + description + "</div><div class='col-xs-2'><a id='' href='#new_event_link' class='' onclick='removeEvent("+ event_id +");'><span class='fui-trash'></span></a></div></div>");
-    
   }
-              
+
+  if(event.etype == "carb" || event.etype == "bolus") {
+
+    $("#input_history").append("<div class='row' class='history_row' id='uevent_" + event_id +"'><div class='col-xs-12'><div class='row'><div class='col-xs-6'>" + description + "</div><div class='col-xs-6'><div class='col-xs-10'>" + description_b + "</div><div class='col-xs-2'><a id='' href='#new_event_link' class='' onclick='removeEvent("+ event_id +");'><span class='fui-trash'></span></a></div></div></div><div class='row'><div class='col-xs-6'><div id='history_amount_slider_" + event_id +"' class='ui-slider'></div></div><div class='col-xs-6'><div id='history_time_slider_" + event_id +"' class='ui-slider'></div></div></div></div></div>");
+
+  } else {
+
+    $("#input_history").append("<div class='row' id='uevent_" + event_id +"'><div class='col-xs-10'>" + description + "</div><div class='col-xs-2'><a id='' href='#new_event_link' class='' onclick='removeEvent("+ event_id +");'><span class='fui-trash'></span></a></div></div>");
+
+  }
+
   $("#input_history_container").removeClass("hidden");
-  
+
 }
 
 function removeEvent(event_id) {
 
   $("#uevent_" + event_id).remove();
-  
+
   for (i=0;i<(uevent.length);i++) {
     if ( uevent[i].id == event_id ) {
       uevent.splice(i,1);
     }
   }
-              
+
   reloadGraphData();
-  
+
   if ( uevent.length == 0 ) {
     $("#input_history_container").addClass("hidden");
   }
-  
+
 }
 
-// Sliders Reload
-function reloadSliders() {
-  for (i=0;i<(uevent.length);i++) {
-    $("#history_time_slider_" + uevent[i].id).slider("option","max",userdata.simlength*60);
-  }
-        
-}
-        
 // Document Ready
 $(document).ready(function(){
   reloadGraphData();
-  
+
   $(window).resize(function(){
     reloadGraphData();
   });
-  
+
 });
