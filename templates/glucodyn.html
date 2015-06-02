@@ -172,6 +172,12 @@
 
     <script type="text/javascript">
       userdata = {{ userdata|tojson|safe }};
+
+	  {% for event in history.uevent %}
+		  uevent.push({{ event|tojson|safe }});
+		  addEventHistory()
+	  {% endfor %}
+
       reloadGraphData();
     </script>
 
@@ -182,7 +188,7 @@ userdata = {{ userdata|tojson }}
 
 {{ cache_info|pprint(true) }}
 
-{{ raw_history|pprint(true) }}
+{{ history.raw|pprint(true) }}
       </pre>
     </div>
 

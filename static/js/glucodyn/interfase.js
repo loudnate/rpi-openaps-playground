@@ -230,7 +230,7 @@ function addEventHistory() {
   
   var event = uevent[uevent.length - 1];
   var event_index = uevent.length - 1;
-  var event_id = event.id
+  var event_id = event_index
   var description = ""
   
   if(event.etype == "carb") {

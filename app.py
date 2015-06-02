@@ -2,6 +2,7 @@ from datetime import timedelta
 from flask import Flask
 from flask import render_template
 
+from glucodyn import GlucoDynEventHistory
 import pump
 
 app = Flask(__name__, static_url_path='')
@@ -24,14 +25,19 @@ def glucodyn():
 
     settings["simlength"] = settings["idur"]
 
+    history = GlucoDynEventHistory(
+        pump.history_in_range(
+            pump_datetime - timedelta(hours=settings["simlength"]),
+            pump_datetime
+        ),
+        zero_datetime = pump_datetime
+    )
+
     return render_template(
         'glucodyn.html',
         userdata=settings,
         cache_info=pump.cache_info(),
-        raw_history=pump.history_in_range(
-            pump_datetime - timedelta(hours=settings["simlength"]),
-            pump_datetime
-        )
+        history=history
     )
 
 if __name__ == "__main__":

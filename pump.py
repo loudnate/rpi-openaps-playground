@@ -119,14 +119,16 @@ def _latest_glucose_entry_in_range(from_datetime, to_datetime):
     )
     last_page = glucose_pages_dict["end"]
     glucose_history = json.loads(_pump_output("read_glucose_data", str(last_page)))
+    glucose_iterator = (x for x in reversed(glucose_history) if x["name"] in ("GlucoseSensorData", "CalBGForGH"))
 
-    current_glucose_dict = next(
-        (x for x in reversed(glucose_history) if x["name"] in ("GlucoseSensorData", "CalBGForGH")),
-        {}
-    )
+    last_datetime = to_datetime
 
-    if from_datetime <= parser.parse(current_glucose_dict["date"]) <= to_datetime:
-        return current_glucose_dict
+    while from_datetime <= last_datetime:
+        glucose_dict = next(glucose_iterator, None)
+        last_datetime = parser.parse(glucose_dict["date"])
+        if from_datetime <= last_datetime <= to_datetime:
+            return glucose_dict
+
     return None
 
 
