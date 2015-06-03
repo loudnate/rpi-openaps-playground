@@ -1,3 +1,19 @@
+/**
+ * @param {object} event The event descriptor
+ * @param {number} time The simulation time, in minutes
+ * @return {number} The glucose effect, in mg/dL
+ */
+function eventEffectAtTime(event, time) {
+    if(event.etype=="carb") {
+      return deltaBGC(time - event.time, userdata.sensf, userdata.cratio, event.grams, event.ctype)
+    } else if(event.etype=="bolus") {
+        console.log("deltaBGI(" + (time - event.time) + ") == " + deltaBGI(time - event.time, event.units, userdata.sensf, userdata.idur))
+      return deltaBGI(time - event.time, event.units, userdata.sensf, userdata.idur)
+    } else {
+      return deltatempBGI(time, event.dbdt, userdata.sensf, userdata.idur, event.t1, event.t2);
+    }
+}
+
 // Function to load the Graph everytime any setting is changed
 function reloadGraphData() {
 
@@ -14,13 +30,17 @@ function reloadGraphData() {
 
     if ( uevent[j] && uevent.etype != "" ) {
 
+        var t0effect = eventEffectAtTime(uevent[j], 0);
+
      for (i=0; i<n;i++) {
+         var netEffectAtTime = eventEffectAtTime(uevent[j], i * dt) - t0effect;
+         
          if(uevent[j].etype=="carb") {
-           simbgc[i] = simbgc[i]+deltaBGC(i*dt-uevent[j].time,userdata.sensf,userdata.cratio,uevent[j].grams,uevent[j].ctype)
+             simbgc[i] = simbgc[i] + netEffectAtTime;
          } else if(uevent[j].etype=="bolus") {
-           simbgi[i] = simbgi[i]+deltaBGI(i*dt-uevent[j].time,uevent[j].units,userdata.sensf,userdata.idur)
+             simbgi[i] = simbgi[i] + netEffectAtTime;
          } else {
-           simbgi[i]=simbgi[i]+deltatempBGI((i*dt),uevent[j].dbdt,userdata.sensf,userdata.idur,uevent[j].t1,uevent[j].t2);
+             simbgi[i] = simbgi[i] + netEffectAtTime;
          }
      }
 
