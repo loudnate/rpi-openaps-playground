@@ -7,7 +7,7 @@ RUN apt-get update && \
     --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
 
-RUN easy_install cachetools
+RUN easy_install cachetools python-dateutil
 
 EXPOSE 80
 
