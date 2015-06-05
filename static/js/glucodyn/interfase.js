@@ -7,7 +7,6 @@ function eventEffectAtTime(event, time) {
     if(event.etype=="carb") {
         return deltaBGC(time - event.time, userdata.sensf, userdata.cratio, event.grams, event.ctype)
     } else if(event.etype=="bolus") {
-        console.log("deltaBGI(" + (time - event.time) + ") == " + deltaBGI(time - event.time, event.units, userdata.sensf, userdata.idur))
         return deltaBGI(time - event.time, event.units, userdata.sensf, userdata.idur)
     } else {
         return deltatempBGI(time, event.dbdt, userdata.sensf, userdata.idur, event.t1, event.t2);
