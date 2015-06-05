@@ -23,11 +23,31 @@ class GlucoDynEventHistory(object):
         return int(round((timestamp - self.zero_datetime).total_seconds() / 60))
 
     def _decode_bolus(self, event):
-        return {
-            "etype": "bolus",
-            "time": self._relative_time(event["timestamp"]),
-            "units": event["amount"]
-        }
+        if event["type"] == "square":
+            t0 = self._relative_time(event["timestamp"])
+            duration = event["duration"]
+            delivered = event["amount"]
+            programmed = event["programmed"]
+            rate = programmed / duration  # U/min
+
+            # If less than 100% of the programmed dose was delivered and we're past the delivery
+            # window, then estimate the actual duration.
+            if t0 + duration < 0:
+                duration = int(duration * delivered / programmed)
+
+            return {
+                "etype": "tempbasal",
+                "time": t0,
+                "t1": t0,
+                "t2": t0 + duration,
+                "dbdt": rate
+            }
+        elif event["amount"] > 0:
+            return {
+                "etype": "bolus",
+                "time": self._relative_time(event["timestamp"]),
+                "units": event["amount"]
+            }
 
     def _decode_boluswizard(self, event):
         return {

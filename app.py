@@ -11,14 +11,15 @@ app = Flask(__name__, static_url_path='')
 @app.route("/")
 def glucodyn():
     """Renders a GlucoDyn prediction graph from the current pump settings and recent history"""
-    pump_datetime = pump.clock_datetime()
+    bginitial, pump_datetime = pump.glucose_level_at_datetime(pump.clock_datetime())
 
     # Glucodyn template data
     settings = {
+        "pump_time_string": pump_datetime.strftime('%I:%M:%S %p'),
         "cratio": pump.carb_ratio_at_time(pump_datetime.time()),
         "sensf": pump.insulin_sensitivity_at_time(pump_datetime.time()),
         "idur": pump.insulin_action_curve(),
-        "bginitial": pump.glucose_level_at_datetime(pump_datetime),
+        "bginitial": bginitial,
         "stats": 1,
         "inputeffect": 1
     }

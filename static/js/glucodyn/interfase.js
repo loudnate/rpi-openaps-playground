@@ -49,8 +49,14 @@ function reloadGraphData() {
 
     RecommendedMaxSimTime(0);
 
+    var hAxisTitle = 'Time (min)';
+
+    if (userdata.pump_time_string) {
+        hAxisTitle += ' from ' + userdata.pump_time_string;
+    }
+
     var predata = new google.visualization.DataTable();
-    predata.addColumn('number', 'Time'); // Implicit domain label col.
+    predata.addColumn('number', hAxisTitle); // Implicit domain label col.
     predata.addColumn('number', 'Resulting Blood Sugar mg/dL'); // Implicit series 1 data col.
 
     if ( userdata.stats == 1 ) {
@@ -92,7 +98,7 @@ function reloadGraphData() {
                 curveType: 'function',
                 legend: { position: 'bottom' },
                 hAxis: {
-                    title: 'Time (min)',
+                    title: hAxisTitle,
                     baselineColor: 'none'
                 },
                 vAxis: {
@@ -125,7 +131,7 @@ function reloadGraphData() {
                 curveType: 'function',
                 legend: { position: 'bottom' },
                 hAxis: {
-                    title: 'Time (min)',
+                    title: hAxisTitle,
                     baselineColor: 'none'
                 },
                 vAxis: {
@@ -185,7 +191,7 @@ function reloadGraphData() {
                 curveType: 'function',
                 legend: { position: 'bottom' },
                 hAxis: {
-                    title: 'Time (min)',
+                    title: hAxisTitle,
                     baselineColor: 'none'
                 },
                 vAxis: {
@@ -202,8 +208,7 @@ function reloadGraphData() {
                     1: { color: '#1abc9c', lineDashStyle: [4,4] },
                     2: { color: '#e74c3c', lineDashStyle: [4,4] },
                 },
-                chartArea: {'width': '90%', 'height': '80%'},
-                legend: {'position': 'top'}
+                chartArea: {'width': '90%', 'height': '80%'}
             };
 
         } else {
@@ -215,7 +220,7 @@ function reloadGraphData() {
                 curveType: 'function',
                 legend: { position: 'bottom' },
                 hAxis: {
-                    title: 'Time (min)',
+                    title: hAxisTitle,
                     baselineColor: 'none'
                 },
                 vAxis: {
@@ -230,8 +235,7 @@ function reloadGraphData() {
                 series: {
                     0: { color: '#666666' },
                 },
-                chartArea: {'width': '90%', 'height': '80%'},
-                legend: {'position': 'top'}
+                chartArea: {'width': '90%', 'height': '80%'}
             };
 
         }
@@ -263,15 +267,7 @@ function addEventHistory() {
         description_b = "From min "+ event.t1 +" to min "+ event.t2 +""
     }
 
-    if(event.etype == "carb" || event.etype == "bolus") {
-
-        $("#input_history").append("<div class='row' class='history_row' id='uevent_" + event_id +"'><div class='col-xs-6'>" + description + "</div><div class='col-xs-6'>" + description_b + "</div></div>");
-
-    } else {
-
-        $("#input_history").append("<div id='uevent_" + event_id +"'>" + description + "</div>");
-
-    }
+    $("#input_history").append("<div class='row' id='uevent_" + event_id +"'><div class='col-xs-6'>" + description + "</div><div class='col-xs-6'>" + description_b + "</div></div>");
 
     $("#input_history_container").removeClass("hidden");
 

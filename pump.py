@@ -139,16 +139,20 @@ def glucose_level_at_datetime(pump_datetime):
 
     :param pump_datetime:
     :type pump_datetime: datetime.datetime
-    :return: The most-recent glucose level (mg/dL), or None
-    :rtype: int|NoneType
+    :return: A tuple containing the most-recent glucose level (mg/dL), and its timestamp, or Nones
+    :rtype: tuple(int|NoneType, datetime.datetime|NoneType)
     """
     # truncate the seconds to create a 60s ttl
     to_datetime = pump_datetime.replace(second=0, microsecond=0)
     from_datetime = to_datetime - timedelta(minutes=15)
 
     glucose_history_dict = _latest_glucose_entry_in_range(from_datetime, to_datetime) or {}
+    amount = glucose_history_dict.get("sgv", glucose_history_dict.get("amount"))
 
-    return glucose_history_dict.get("sgv", glucose_history_dict.get("amount", None))
+    if amount is not None:
+        return (amount, parser.parse(glucose_history_dict["date"]))
+    else:
+        return (amount, None)
 
 
 _proxy_cache(_latest_glucose_entry_in_range, glucose_level_at_datetime)
