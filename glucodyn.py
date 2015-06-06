@@ -1,7 +1,9 @@
 """
 Model generator for GlucoDyn event history
 """
+from collections import defaultdict
 from datetime import datetime
+from datetime import timedelta
 
 
 class GlucoDynEventHistory(object):
@@ -9,6 +11,8 @@ class GlucoDynEventHistory(object):
         self.uevent = []
         self.raw = pump_history
         self.zero_datetime = zero_datetime or datetime.now()
+
+        self._boluswizard_events_by_body = defaultdict(list)
 
         for event in pump_history:
             try:
@@ -50,6 +54,14 @@ class GlucoDynEventHistory(object):
             }
 
     def _decode_boluswizard(self, event):
+        # BolusWizard records can appear as duplicates with one containing appended data.
+        # Criteria are records are less than 1 min apart and have identical bodies
+        for seen_event in self._boluswizard_events_by_body[event["_body"]]:
+            if abs(seen_event["timestamp"] - event["timestamp"]) <= timedelta(minutes=1):
+                return None
+
+        self._boluswizard_events_by_body[event["_body"]].append(event)
+
         return {
             "etype": "carb",
             "ctype": 180,  # Absorption rate. "Low": 240, "High": 90
