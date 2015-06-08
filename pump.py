@@ -50,6 +50,16 @@ cache_info = _CacheInfo()
 
 
 @ttl_cache(ttl=24 * 60 * 60 + next(_cache_scatter_minutes))
+def basal_schedule():
+    """
+
+    :return:
+    :rtype: list(dict)
+    """
+    return json.loads(_pump_output("read_selected_basal_profile"))
+
+
+@ttl_cache(ttl=24 * 60 * 60 + next(_cache_scatter_minutes))
 def _carb_ratio_schedule():
     """
 
@@ -69,7 +79,7 @@ def carb_ratio_at_time(pump_time):
     :return:
     :rtype: float
 
-    :raises: IndexError
+    :raises IndexError:
     """
     pump_time_minutes = pump_time.hour * 60.0 + pump_time.minute + pump_time.second / 60.0
     carb_ratio_schedule = _carb_ratio_schedule()
@@ -100,8 +110,8 @@ def clock_datetime():
 
 
 @lru_cache(maxsize=1)
-def _latest_glucose_entry_in_range(from_datetime, to_datetime):
-    """Returns the latest glucose history entry in the specified range
+def _latest_sensor_glucose_entry_in_range(from_datetime, to_datetime):
+    """Returns the latest sensor glucose history entry in the specified range
 
     :param from_datetime:
     :type from_datetime: datetime.datetime
@@ -124,16 +134,37 @@ def _latest_glucose_entry_in_range(from_datetime, to_datetime):
     last_datetime = to_datetime
 
     while from_datetime <= last_datetime:
-        glucose_dict = next(glucose_iterator, None)
+        try:
+            glucose_dict = next(glucose_iterator)
+        except StopIteration:
+            break
+
         last_datetime = parser.parse(glucose_dict["date"])
-        if from_datetime <= last_datetime <= to_datetime:
+        amount = glucose_dict.get("sgv", glucose_dict.get("amount", 0))
+        if amount > 0 and from_datetime <= last_datetime <= to_datetime:
             return glucose_dict
 
-    return None
+
+def _latest_meter_glucose_entry_in_range(from_datetime, to_datetime):
+    """Returns the latest meter glucose entry in the specified range
+
+    :param from_datetime:
+    :type from_datetime: datetime.datetime
+    :param to_datetime:
+    :type to_datetime: datetime.datetime
+    :return: A dictionary describing the glucose reading, or None if no glucose readings were found
+    :rtype: dict|NoneType
+    """
+    pump_history = history_in_range(from_datetime, to_datetime)
+
+    for history_dict in [h for h in pump_history if h.get("_type") == "CalBGForPH"]:
+        amount = history_dict.get("amount", 0)
+        if amount > 0 and from_datetime <= history_dict["timestamp"] <= to_datetime:
+            return history_dict
 
 
 def glucose_level_at_datetime(pump_datetime):
-    """Returns the most-recent glucose level at a specified time in the sensor history
+    """Returns the most-recent glucose level at a specified time in the sensor and history
 
     Returns None if no glucose readings were recorded in the 15 minutes before `pump_datetime`
 
@@ -146,19 +177,25 @@ def glucose_level_at_datetime(pump_datetime):
     to_datetime = pump_datetime.replace(second=0, microsecond=0)
     from_datetime = to_datetime - timedelta(minutes=15)
 
-    glucose_history_dict = _latest_glucose_entry_in_range(from_datetime, to_datetime) or {}
+    glucose_history_dict = _latest_sensor_glucose_entry_in_range(from_datetime, to_datetime) or {}
     amount = glucose_history_dict.get("sgv", glucose_history_dict.get("amount"))
+    if amount is not None:
+        glucose_datetime = parser.parse(glucose_history_dict["date"])
+    else:
+        glucose_history_dict = _latest_meter_glucose_entry_in_range(from_datetime, to_datetime) or {}
+        amount = glucose_history_dict.get("amount")
+        glucose_datetime = glucose_history_dict.get("timestamp")
 
     if amount is not None:
-        return (amount, parser.parse(glucose_history_dict["date"]))
+        return (amount, glucose_datetime)
     else:
         return (amount, None)
 
 
-_proxy_cache(_latest_glucose_entry_in_range, glucose_level_at_datetime)
+_proxy_cache(_latest_sensor_glucose_entry_in_range, glucose_level_at_datetime)
 
 
-@lru_cache(maxsize=1)
+@lru_cache(maxsize=2)
 def _history_in_range(from_datetime, to_datetime):
     next_page_num = 0
     last_datetime = to_datetime
@@ -239,7 +276,7 @@ def _pump_output(*args):
     :return:
     :rtype: str
 
-    :raises: CalledProcessError
+    :raises CalledProcessError:
     """
     from subprocess import check_output
 

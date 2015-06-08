@@ -24,14 +24,18 @@ def glucodyn():
         "inputeffect": 1
     }
 
-    settings["simlength"] = settings["idur"]
+    max_carb_absorption = 4
+    settings["simlength"] = max(settings["idur"], max_carb_absorption)
+    history_start_datetime = pump_datetime - timedelta(hours=settings["simlength"])
 
     history = GlucoDynEventHistory(
         pump.history_in_range(
-            pump_datetime - timedelta(hours=settings["simlength"]),
+            history_start_datetime,
             pump_datetime
         ),
-        zero_datetime = pump_datetime
+        pump.basal_schedule(),
+        zero_datetime=pump_datetime,
+        sim_hours=settings["simlength"]
     )
 
     return render_template(

@@ -188,7 +188,8 @@ userdata = {{ userdata|tojson }}
 
 {{ cache_info|pprint(true) }}
 
-{{ history.raw|pprint(true) }}
+history.basal_schedule = {{ history.basal_schedule|pprint(true) }}
+history.raw = {{ history.raw|pprint(true) }}
       </pre>
     </div>
 
