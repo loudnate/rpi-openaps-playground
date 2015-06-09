@@ -188,7 +188,7 @@ class GlucoDynEventHistory(object):
             }]
 
     def _decode_pumpresume(self, event):
-        start_datetime = self._suspend_datetime or (self.zero_datetime - timedelta(hours=sim_hours))
+        start_datetime = self._suspend_datetime or (self.zero_datetime - timedelta(hours=self.sim_hours))
         return self._basal_adjustments_in_range(start_datetime, event["timestamp"], percent=0)
 
     def _decode_pumpsuspend(self, event):
@@ -200,5 +200,3 @@ class GlucoDynEventHistory(object):
 
     def _decode_tempbasalduration(self, event):
         pass
-
-
