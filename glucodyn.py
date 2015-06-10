@@ -138,21 +138,23 @@ class GlucoDynEventHistory(object):
                 t0 = self._relative_time(start_datetime)
 
             t1 = self._relative_time(end_datetime)
-            event = {
-                "etype": "tempbasal",
-                "time": t0,
-                T0: t0,
-                T1: t1
-            }
 
-            # Find the delta of the new rate
-            rate = absolute
-            if percent is not None:
-                rate = basal_rate["rate"] * percent / 100.0
+            if t1 - t0 > 0:
+                event = {
+                    "etype": "tempbasal",
+                    "time": t0,
+                    T0: t0,
+                    T1: t1
+                }
 
-            event["dbdt"] = (rate - basal_rate["rate"]) / 60.0
+                # Find the delta of the new rate
+                rate = absolute
+                if percent is not None:
+                    rate = basal_rate["rate"] * percent / 100.0
 
-            temp_basal_events.append(event)
+                event["dbdt"] = (rate - basal_rate["rate"]) / 60.0
+
+                temp_basal_events.append(event)
 
         return temp_basal_events
 
@@ -212,6 +214,7 @@ class GlucoDynEventHistory(object):
     def _decode_pumpsuspend(self, event):
         end_datetime = self._resume_datetime or (self.zero_datetime +
                                                  timedelta(hours=self.sim_hours))
+        self._resume_datetime = None
         return self._basal_adjustments_in_range(event["timestamp"], end_datetime, percent=0)
 
     def _decode_tempbasal(self, event):
@@ -236,7 +239,7 @@ class GlucoDynEventHistory(object):
 
                 return events
             else:
-                self._last_temp_basal_event = None
+                self._last_temp_basal_event = {T0: t0, T1: t1}
 
     def _decode_tempbasalduration(self, event):
         self._temp_basal_duration = event["duration (min)"]

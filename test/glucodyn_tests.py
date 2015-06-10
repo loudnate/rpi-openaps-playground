@@ -211,5 +211,72 @@ class GlucoDynEventHistoryTestCase(unittest.TestCase):
             geh.uevent
         )
 
+    def test_complex_temp_basal_history(self):
+        with open(get_file_at_path("fixtures/temp_basal.json")) as fp:
+            pump_history = map(hydrate_event, json.load(fp))
+
+        geh = GlucoDynEventHistory(
+            pump_history,
+            self.basal_rate_schedule,
+            zero_datetime=datetime(2015, 6, 6, 21)
+        )
+
+        self.assertListEqual(
+            [
+                {
+                    "etype": "tempbasal",
+                    "time": -20,
+                    "t1": -20,
+                    "t2": -10,
+                    "dbdt": (0.8 * 150 / 100.0 - 0.8) / 60.0
+                },
+                {
+                    "etype": "tempbasal",
+                    "time": -115,
+                    "t1": -115,
+                    "t2": -55,
+                    "dbdt": (0.8 * 200 / 100.0 - 0.8) / 60.0
+                },
+                {
+                    "etype": "tempbasal",
+                    "time": -292,
+                    "t1": -292,
+                    "t2": -275,
+                    "dbdt": (0.8 * 0 / 100.0 - 0.8) / 60.0
+                },
+            ],
+            [event for event in geh.uevent if event["etype"] == "tempbasal"]
+        )
+
+    def test_quick_suspend_and_resume(self):
+        pump_history = [
+            {
+                "_type": "PumpResume",
+                "_description": "PumpResume 2015-06-06T20:50:01 head[2], body[0] op[0x1f]",
+                "date": 1433620201000.0,
+                "timestamp": datetime(2015, 6, 6, 20, 50, 01),
+                "_body": "",
+                "_head": "1f20",
+                "_date": "41b214060f"
+            },
+            {
+                "_type": "PumpSuspend",
+                "_description": "PumpSuspend 2015-06-06T20:49:57 head[2], body[0] op[0x1e]",
+                "date": 1433620197000.0,
+                "timestamp": datetime(2015, 6, 6, 20, 49, 57),
+                "_body": "",
+                "_head": "1e01",
+                "_date": "79b114060f"
+            }
+        ]
+
+        geh = GlucoDynEventHistory(
+            pump_history,
+            self.basal_rate_schedule,
+            zero_datetime=datetime(2015, 6, 6, 21)
+        )
+
+        self.assertListEqual([], geh.uevent)
+
 if __name__ == "__main__":
     unittest.main()
