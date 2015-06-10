@@ -1,5 +1,6 @@
 from datetime import datetime
 from datetime import time
+from dateutil import parser
 import json
 import os
 import sys
@@ -9,6 +10,11 @@ from glucodyn import GlucoDynEventHistory
 
 def get_file_at_path(path):
     return '{}/{}'.format(os.path.dirname(os.path.realpath(sys.argv[0])), path)
+
+
+def hydrate_event(event):
+    event["timestamp"] = parser.parse(event["timestamp"])
+    return event
 
 
 class GlucoDynEventHistoryTestCase(unittest.TestCase):
@@ -106,6 +112,36 @@ class GlucoDynEventHistoryTestCase(unittest.TestCase):
                 datetime(2015, 01, 02, 02),
                 percent=50
             )
+        )
+
+    def test_duplicate_bolus_wizard_carbs(self):
+        with open(get_file_at_path('fixtures/bolus_wizard_duplicates.json')) as fp:
+            pump_history = map(hydrate_event, json.load(fp))
+
+        geh = GlucoDynEventHistory(pump_history, self.basal_rate_schedule, zero_datetime=datetime(2015, 6, 5, 19))
+
+        self.assertListEqual(
+            [
+                {
+                    "etype": "carb",
+                    "ctype": 180,
+                    "time": -3,
+                    "grams": 10
+                },
+                {
+                    "etype": "carb",
+                    "ctype": 180,
+                    "time": -5,
+                    "grams": 30
+                },
+                {
+                    "etype": "carb",
+                    "ctype": 180,
+                    "time": -15,
+                    "grams": 65
+                },
+            ],
+            [event for event in geh.uevent if event["etype"] == "carb"]
         )
 
 if __name__ == '__main__':
