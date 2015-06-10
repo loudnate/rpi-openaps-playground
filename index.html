@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		<!--
+
+		The MIT License (MIT)
+
+		Copyright (c) 2015 Perceptus.org
+
+		Permission is hereby granted, free of charge, to any person obtaining a copy
+		of this software and associated documentation files (the "Software"), to deal
+		in the Software without restriction, including without limitation the rights
+		to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+		copies of the Software, and to permit persons to whom the Software is
+		furnished to do so, subject to the following conditions:
+
+		The above copyright notice and this permission notice shall be included in all
+		copies or substantial portions of the Software.
+
+		THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+		IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+		FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+		AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+		LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+		OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+		SOFTWARE.
+
+		-->
+
+		<!--
+
+		 .88888.  dP                            888888ba
+		d8'   `88 88                            88    `8b
+		88        88 dP    dP .d8888b. .d8888b. 88     88 dP    dP 88d888b.
+		88   YP88 88 88    88 88'  `"" 88'  `88 88     88 88    88 88'  `88
+		Y8.   .88 88 88.  .88 88.  ... 88.  .88 88    .8P 88.  .88 88    88
+		 `88888'  dP `88888P' `88888P' `88888P' 8888888P  `8888P88 dP    dP
+		                                                       .88
+		                                                   d8888P
+		dP                    888888ba                                                 dP
+		88                    88    `8b                                                88
+		88d888b. dP    dP    a88aaaa8P' .d8888b. 88d888b. .d8888b. .d8888b. 88d888b. d8888P dP    dP .d8888b.    .d8888b. 88d888b. .d8888b.
+		88'  `88 88    88     88        88ooood8 88'  `88 88'  `"" 88ooood8 88'  `88   88   88    88 Y8ooooo.    88'  `88 88'  `88 88'  `88
+		88.  .88 88.  .88     88        88.  ... 88       88.  ... 88.  ... 88.  .88   88   88.  .88       88 dP 88.  .88 88       88.  .88
+		88Y8888' `8888P88     dP        `88888P' dP       `88888P' `88888P' 88Y888P'   dP   `88888P' `88888P' 88 `88888P' dP       `8888P88
+		              .88                                                   88                                                          .88
+		          d8888P                                                    dP                                                      d8888P
+
+		Education is crucial in the treatment of complex and dynamic diseases such as T1D. When patients are aware of the elements that affect
+		variations in their disease, they are able to better understand their situation enabling them to optimize their treatments.
+
+		Accessibility through the primary method of communication in the present: Digital communication. Live data should be accessible when
+		the patient needs it in the easiest possible way.
+
+		Autonomy is the dream of every patient with T1D. Life does not happen while being in front of a computer or staring at data on your
+		phone. Most of the times where deviations happen, patients are busy living their lives.
+
+		Gustavo Muñoz ( @bustavo )
+		Kenneth Stack
+
+		-->
+
+		<!-- FLAT UI -->
+		<!-- Twitter Bootstrap-->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" type="text/css" media="screen" title="no title" charset="utf-8">
+		<!-- FLAT UI END-->
+
+		<!-- Google Charts -->
+		<script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+		<script type="text/javascript" src="https://www.google.com/jsapi?autoload={'modules':[{'name':'visualization','version':'1','packages':['corechart']}]}"></script>
+		<!-- Google Charts END -->
+
+		<title>naterade</title>
+
+	</head>
+
+	<body>
+
+		<div class="container">
+
+			<h1 class=".glucodyn-logo">naterade <small>using predictions by <a href="http://perceptus.org/about/glucodyn" target="_blank">GlucoDyn</a></small></h1>
+
+		</div>
+
+		<div class="container" id="chart_container">
+
+			<!-- Google Charts Container -->
+			<div id="curve_chart"></div>
+
+		</div>
+
+		<script src="static/js/glucodyn/algorithms.js" type="text/javascript" charset="utf-8"></script>
+
+		<!-- Glucodyn Statistics -->
+
+		<div class="container hidden" id="statistics_container">
+
+			<h1 class="glucodyn-section-title">Statistics</h1>
+
+			<div class="row">
+
+				<div class="col-xs-3">
+					Avg
+				</div>
+
+				<div class="col-xs-3">
+					Max
+				</div>
+
+				<div class="col-xs-3">
+					Min
+				</div>
+
+				<div class="col-xs-3">
+					SD
+				</div>
+
+			</div>
+
+			<div class="row">
+
+				<div class="col-xs-3">
+					<span id="stats_avg">NA</span> mg/dL
+				</div>
+
+				<div class="col-xs-3">
+					<span id="stats_max">NA</span> mg/dL
+				</div>
+
+				<div class="col-xs-3">
+					<span id="stats_min">NA</span> mg/dL
+				</div>
+
+				<div class="col-xs-3">
+					<span id="stats_std">NA</span> mg/dL
+				</div>
+
+			</div>
+
+			<br>
+
+		</div>
+
+		<!-- Glucodyn Statistics END -->
+
+		<!-- Input History -->
+
+		<div class="container hidden" id="input_history_container">
+
+			<h1 class="glucodyn-section-title">Input History</h1>
+
+			<div class="row">
+
+				<!-- This is where input history gets added -->
+				<div class="col-xs-12" id="input_history">
+
+				</div>
+
+			</div>
+
+			<br>
+
+		</div>
+
+		<!-- Input History END -->
+
+    <script src="static/js/glucodyn/interfase.js" type="text/javascript" charset="utf-8"></script>
+
+    <script type="text/javascript">
+      userdata = {"stats": 1, "cratio": 10.0, "pump_time_string": "09:55:00 AM", "idur": 4, "bginitial": 78, "simlength": 4, "sensf": 40, "inputeffect": 1};
+
+	  
+		  uevent.push({"etype": "bolus", "units": 2.2, "time": -79});
+		  addEventHistory()
+	  
+		  uevent.push({"etype": "tempbasal", "dbdt": 0.025, "t1": -78, "t2": -48, "time": -78});
+		  addEventHistory()
+	  
+		  uevent.push({"etype": "carb", "grams": 42, "ctype": 180, "time": -79});
+		  addEventHistory()
+	  
+		  uevent.push({"etype": "bolus", "units": 2.3, "time": -147});
+		  addEventHistory()
+	  
+		  uevent.push({"etype": "carb", "grams": 23, "ctype": 180, "time": -147});
+		  addEventHistory()
+	  
+		  uevent.push({"etype": "tempbasal", "dbdt": -0.015416666666666667, "t1": -183, "t2": -175, "time": -183});
+		  addEventHistory()
+	  
+		  uevent.push({"etype": "tempbasal", "dbdt": -0.014166666666666668, "t1": -175, "t2": -147, "time": -175});
+		  addEventHistory()
+	  
+
+      reloadGraphData();
+    </script>
+
+    <div class="container">
+      <a href="javascript:$('#debug-info').toggleClass('hidden')">Debug info</a>
+      <pre id="debug-info" class="hidden">
+userdata = {&#34;stats&#34;: 1, &#34;cratio&#34;: 10.0, &#34;pump_time_string&#34;: &#34;09:55:00 AM&#34;, &#34;idur&#34;: 4, &#34;bginitial&#34;: 78, &#34;simlength&#34;: 4, &#34;sensf&#34;: 40, &#34;inputeffect&#34;: 1}
+
+{&#39;basal_schedule&#39;: CacheInfo(hits=3, misses=1, maxsize=128, currsize=1),
+ &#39;carb_ratio_at_time&#39;: CacheInfo(hits=3, misses=1, maxsize=128, currsize=1),
+ &#39;glucose_level_at_datetime&#39;: CacheInfo(hits=1, misses=3, maxsize=1, currsize=1),
+ &#39;history_in_range&#39;: CacheInfo(hits=2, misses=2, maxsize=2, currsize=2),
+ &#39;insulin_action_curve&#39;: CacheInfo(hits=3, misses=1, maxsize=128, currsize=1),
+ &#39;insulin_sensitivity_at_time&#39;: CacheInfo(hits=3, misses=1, maxsize=128, currsize=1)}
+
+history.basal_schedule = [{u&#39;i&#39;: 0, u&#39;minutes&#39;: 0, u&#39;rate&#39;: 0.9, u&#39;start&#39;: u&#39;00:00:00&#39;},
+ {u&#39;i&#39;: 1, u&#39;minutes&#39;: 240, u&#39;rate&#39;: 0.925, u&#39;start&#39;: u&#39;04:00:00&#39;},
+ {u&#39;i&#39;: 2,
+  u&#39;minutes&#39;: 420,
+  u&#39;rate&#39;: 0.8500000000000001,
+  u&#39;start&#39;: u&#39;07:00:00&#39;},
+ {u&#39;i&#39;: 3,
+  u&#39;minutes&#39;: 600,
+  u&#39;rate&#39;: 0.8500000000000001,
+  u&#39;start&#39;: u&#39;10:00:00&#39;},
+ {u&#39;i&#39;: 4, u&#39;minutes&#39;: 720, u&#39;rate&#39;: 0.75, u&#39;start&#39;: u&#39;12:00:00&#39;},
+ {u&#39;i&#39;: 5, u&#39;minutes&#39;: 900, u&#39;rate&#39;: 0.8, u&#39;start&#39;: u&#39;15:00:00&#39;},
+ {u&#39;i&#39;: 6, u&#39;minutes&#39;: 1320, u&#39;rate&#39;: 0.9, u&#39;start&#39;: u&#39;22:00:00&#39;}]
+history.raw = [{u&#39;_body&#39;: u&#39;783436&#39;,
+  u&#39;_date&#39;: u&#39;4aadc96a0f&#39;,
+  u&#39;_description&#39;: u&#39;BGReceived 2015-06-10T09:45:10 head[2], body[3] op[0x3f]&#39;,
+  u&#39;_head&#39;: u&#39;3f09&#39;,
+  u&#39;_type&#39;: u&#39;BGReceived&#39;,
+  u&#39;amount&#39;: 78,
+  u&#39;date&#39;: 1433925910000.0,
+  u&#39;link&#39;: u&#39;783436&#39;,
+  u&#39;timestamp&#39;: datetime.datetime(2015, 6, 10, 9, 45, 10)},
+ {u&#39;_body&#39;: u&#39;&#39;,
+  u&#39;_date&#39;: u&#39;4aad296a0f&#39;,
+  u&#39;_description&#39;: u&#39;CalBGForPH 2015-06-10T09:45:10 head[2], body[0] op[0x0a]&#39;,
+  u&#39;_head&#39;: u&#39;0a4e&#39;,
+  u&#39;_type&#39;: u&#39;CalBGForPH&#39;,
+  u&#39;amount&#39;: 78,
+  u&#39;date&#39;: 1433925910000.0,
+  u&#39;timestamp&#39;: datetime.datetime(2015, 6, 10, 9, 45, 10)},
+ {u&#39;_body&#39;: u&#39;&#39;,
+  u&#39;_date&#39;: u&#39;40aa29aa0f&#39;,
+  u&#39;_description&#39;: u&#39;SensorAlert 2015-06-10T09:42:00 head[3], body[0] op[0x0b]&#39;,
+  u&#39;_head&#39;: u&#39;0b6800&#39;,
+  u&#39;_type&#39;: u&#39;SensorAlert&#39;,
+  u&#39;alarm_description&#39;: u&#39;Meter BG Now&#39;,
+  u&#39;alarm_type&#39;: 104,
+  u&#39;date&#39;: 1433925720000.0,
+  u&#39;timestamp&#39;: datetime.datetime(2015, 6, 10, 9, 42)},
+ {u&#39;_body&#39;: u&#39;&#39;,
+  u&#39;_date&#39;: u&#39;40aa28aa0f&#39;,
+  u&#39;_description&#39;: u&#39;SensorAlert 2015-06-10T08:42:00 head[3], body[0] op[0x0b]&#39;,
+  u&#39;_head&#39;: u&#39;0b6900&#39;,
+  u&#39;_type&#39;: u&#39;SensorAlert&#39;,
+  u&#39;alarm_description&#39;: u&#39;Cal Reminder&#39;,
+  u&#39;alarm_type&#39;: 105,
+  u&#39;date&#39;: 1433922120000.0,
+  u&#39;timestamp&#39;: datetime.datetime(2015, 6, 10, 8, 42)},
+ {u&#39;_body&#39;: u&#39;&#39;,
+  u&#39;_date&#39;: u&#39;76a3886a0f&#39;,
+  u&#39;_description&#39;: u&#39;Bolus 2015-06-10T08:35:54 head[8], body[0] op[0x01]&#39;,
+  u&#39;_head&#39;: u&#39;0100580058005000&#39;,
+  u&#39;_type&#39;: u&#39;Bolus&#39;,
+  u&#39;amount&#39;: 2.2,
+  u&#39;date&#39;: 1433921754000.0,
+  u&#39;duration&#39;: 0,
+  u&#39;programmed&#39;: 2.2,
+  u&#39;timestamp&#39;: datetime.datetime(2015, 6, 10, 8, 35, 54),
+  u&#39;type&#39;: u&#39;normal&#39;,
+  u&#39;unabsorbed&#39;: 2.0},
+ {u&#39;_body&#39;: u&#39;&#39;,
+  u&#39;_date&#39;: u&#39;56a5a86a0f&#39;,
+  u&#39;_description&#39;: u&#39;Bolus 2015-06-10T08:37:22 head[8], body[0] op[0x01]&#39;,
+  u&#39;_head&#39;: u&#39;01003c003c005001&#39;,
+  u&#39;_type&#39;: u&#39;Bolus&#39;,
+  u&#39;amount&#39;: 1.5,
+  u&#39;appended&#39;: [{u&#39;_body&#39;: u&#39;&#39;,
+                 u&#39;_date&#39;: u&#39;&#39;,
+                 u&#39;_description&#39;: u&#39;UnabsorbedInsulinBolus unknown head[8], body[0] op[0x5c]&#39;,
+                 u&#39;_head&#39;: u&#39;5c085c43042cbb04&#39;,
+                 u&#39;_type&#39;: u&#39;UnabsorbedInsulinBolus&#39;,
+                 u&#39;data&#39;: [{u&#39;age&#39;: 67, u&#39;amount&#39;: 2.3},
+                           {u&#39;age&#39;: 187, u&#39;amount&#39;: 1.1}]}],
+  u&#39;date&#39;: 1433921842000.0,
+  u&#39;duration&#39;: 30,
+  u&#39;programmed&#39;: 1.5,
+  u&#39;timestamp&#39;: datetime.datetime(2015, 6, 10, 8, 37, 22),
+  u&#39;type&#39;: u&#39;square&#39;,
+  u&#39;unabsorbed&#39;: 2.0},
+ {u&#39;_body&#39;: u&#39;2a500064285a0000a800000000a878&#39;,
+  u&#39;_date&#39;: u&#39;75a3086a0f&#39;,
+  u&#39;_description&#39;: u&#39;BolusWizard 2015-06-10T08:35:53 head[2], body[15] op[0x5b]&#39;,
+  u&#39;_head&#39;: u&#39;5b00&#39;,
+  u&#39;_type&#39;: u&#39;BolusWizard&#39;,
+  u&#39;bg&#39;: 0,
+  u&#39;bg_target_high&#39;: 120,
+  u&#39;bg_target_low&#39;: 90,
+  u&#39;bolus_estimate&#39;: 4.2,
+  u&#39;carb_input&#39;: 42,
+  u&#39;carb_ratio&#39;: 8.0,
+  u&#39;correction_estimate&#39;: 0.0,
+  u&#39;date&#39;: 1433921753000.0,
+  u&#39;food_estimate&#39;: 4.2,
+  u&#39;sensitivity&#39;: 40,
+  u&#39;timestamp&#39;: datetime.datetime(2015, 6, 10, 8, 35, 53),
+  u&#39;unabsorbed_insulin_total&#39;: 0.0},
+ {u&#39;_body&#39;: u&#39;&#39;,
+  u&#39;_date&#39;: u&#39;449c476a0f&#39;,
+  u&#39;_description&#39;: u&#39;Bolus 2015-06-10T07:28:04 head[8], body[0] op[0x01]&#39;,
+  u&#39;_head&#39;: u&#39;01005c005c001400&#39;,
+  u&#39;_type&#39;: u&#39;Bolus&#39;,
+  u&#39;amount&#39;: 2.3,
+  u&#39;appended&#39;: [{u&#39;_body&#39;: u&#39;&#39;,
+                 u&#39;_date&#39;: u&#39;&#39;,
+                 u&#39;_description&#39;: u&#39;UnabsorbedInsulinBolus unknown head[5], body[0] op[0x5c]&#39;,
+                 u&#39;_head&#39;: u&#39;5c052c7804&#39;,
+                 u&#39;_type&#39;: u&#39;UnabsorbedInsulinBolus&#39;,
+                 u&#39;data&#39;: [{u&#39;age&#39;: 120, u&#39;amount&#39;: 1.1}]}],
+  u&#39;date&#39;: 1433917684000.0,
+  u&#39;duration&#39;: 0,
+  u&#39;programmed&#39;: 2.3,
+  u&#39;timestamp&#39;: datetime.datetime(2015, 6, 10, 7, 28, 4),
+  u&#39;type&#39;: u&#39;normal&#39;,
+  u&#39;unabsorbed&#39;: 0.5},
+ {u&#39;_body&#39;: u&#39;17500064285a00005c000000005c78&#39;,
+  u&#39;_date&#39;: u&#39;449c076a0f&#39;,
+  u&#39;_description&#39;: u&#39;BolusWizard 2015-06-10T07:28:04 head[2], body[15] op[0x5b]&#39;,
+  u&#39;_head&#39;: u&#39;5b00&#39;,
+  u&#39;_type&#39;: u&#39;BolusWizard&#39;,
+  u&#39;bg&#39;: 0,
+  u&#39;bg_target_high&#39;: 120,
+  u&#39;bg_target_low&#39;: 90,
+  u&#39;bolus_estimate&#39;: 2.3,
+  u&#39;carb_input&#39;: 23,
+  u&#39;carb_ratio&#39;: 8.0,
+  u&#39;correction_estimate&#39;: 0.0,
+  u&#39;date&#39;: 1433917684000.0,
+  u&#39;food_estimate&#39;: 2.3,
+  u&#39;sensitivity&#39;: 40,
+  u&#39;timestamp&#39;: datetime.datetime(2015, 6, 10, 7, 28, 4),
+  u&#39;unabsorbed_insulin_total&#39;: 0.0},
+ {u&#39;_body&#39;: u&#39;&#39;,
+  u&#39;_date&#39;: u&#39;779b070a0f&#39;,
+  u&#39;_description&#39;: u&#39;PumpResume 2015-06-10T07:27:55 head[2], body[0] op[0x1f]&#39;,
+  u&#39;_head&#39;: u&#39;1f20&#39;,
+  u&#39;_type&#39;: u&#39;PumpResume&#39;,
+  u&#39;date&#39;: 1433917675000.0,
+  u&#39;timestamp&#39;: datetime.datetime(2015, 6, 10, 7, 27, 55)},
+ {u&#39;_body&#39;: u&#39;0e2200&#39;,
+  u&#39;_date&#39;: u&#39;779b070a0f&#39;,
+  u&#39;_description&#39;: u&#39;BasalProfileStart 2015-06-10T07:27:55 head[2], body[3] op[0x7b]&#39;,
+  u&#39;_head&#39;: u&#39;7b02&#39;,
+  u&#39;_type&#39;: u&#39;BasalProfileStart&#39;,
+  u&#39;date&#39;: 1433917675000.0,
+  u&#39;offset&#39;: 25200000,
+  u&#39;rate&#39;: 0.8500000000000001,
+  u&#39;timestamp&#39;: datetime.datetime(2015, 6, 10, 7, 27, 55)},
+ {u&#39;_body&#39;: u&#39;&#39;,
+  u&#39;_date&#39;: u&#39;71b3060a0f&#39;,
+  u&#39;_description&#39;: u&#39;PumpSuspend 2015-06-10T06:51:49 head[2], body[0] op[0x1e]&#39;,
+  u&#39;_head&#39;: u&#39;1e01&#39;,
+  u&#39;_type&#39;: u&#39;PumpSuspend&#39;,
+  u&#39;date&#39;: 1433915509000.0,
+  u&#39;timestamp&#39;: datetime.datetime(2015, 6, 10, 6, 51, 49)}]
+      </pre>
+    </div>
+
+	</body>
+
+</html>
