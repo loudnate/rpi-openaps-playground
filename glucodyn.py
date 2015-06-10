@@ -7,8 +7,24 @@ from datetime import timedelta
 from dateutil import parser
 
 
+# Event keys
+T0 = "t1"
+T1 = "t2"
+
+
 class GlucoDynEventHistory(object):
     def __init__(self, pump_history, basal_schedule, zero_datetime=None, sim_hours=4):
+        """Initializes a new instance of a GlucoDyn event history log
+
+        :param pump_history: A list of pump history events, in reverse-chronological order
+        :type pump_history: list(dict)
+        :param basal_schedule: A list of basal rates scheduled by time in chronological order
+        :type basal_schedule: list(dict)
+        :param zero_datetime: The date and time by which relative history timestamps are calculated
+        :type zero_datetime: datetime
+        :param sim_hours:
+        :type sim_hours: int
+        """
         self.uevent = []
         self.raw = pump_history
         self.zero_datetime = zero_datetime or datetime.now()
@@ -17,17 +33,18 @@ class GlucoDynEventHistory(object):
 
         # Temporary parsing state
         self._boluswizard_events_by_body = defaultdict(list)
-        self._suspend_datetime = None
+        self._resume_datetime = None
+        self._temp_basal_duration = None
         self._last_temp_basal_event = None
 
         for event in pump_history:
             self.add_history_event(event)
 
-        # The pump is still suspended
-        if self._suspend_datetime is not None:
+        # The pump was suspended before the history window began
+        if self._resume_datetime is not None:
             self.add_history_event({
-                "_type": "PumpResume",
-                "timestamp": zero_datetime
+                "_type": "PumpSuspend",
+                "timestamp": zero_datetime - timedelta(hours=self.sim_hours)
             })
 
     def add_history_event(self, event):
@@ -47,6 +64,8 @@ class GlucoDynEventHistory(object):
         :type end_time: datetime.time
         :return: A list of basal rates
         :rtype: list(dict)
+
+        :raises AssertionError: The argument values are invalid
         """
         assert(start_time < end_time)
 
@@ -56,14 +75,14 @@ class GlucoDynEventHistory(object):
         for index, basal_rate in enumerate(self.basal_schedule):
             basal_start_time = parser.parse(basal_rate["start"]).time()
             if start_time >= basal_start_time:
-              start_index = index
+                start_index = index
             if end_time < basal_start_time:
-              end_index = index
-              break
+                end_index = index
+                break
 
         return self.basal_schedule[start_index:end_index]
 
-    def _basal_adjustments_in_range(self, start_datetime, end_datetime, percent=None, rate=None):
+    def _basal_adjustments_in_range(self, start_datetime, end_datetime, percent=None, absolute=None):
         """Returns a list of tempbasal events representing the requested adjustment to the pump's basal schedule
 
         :param start_datetime:
@@ -72,8 +91,8 @@ class GlucoDynEventHistory(object):
         :type end_datetime: datetime
         :param percent: A multiplier to apply to the current basal rate
         :type percent: int
-        :param rate: A specified temporary basal rate, in U/hour
-        :type rate: float
+        :param absolute: A specified temporary basal absolute, in U/hour
+        :type absolute: float
         :return: A list of tempbasal events
         :rtype: list(dict)
 
@@ -81,7 +100,7 @@ class GlucoDynEventHistory(object):
         """
         assert(start_datetime < end_datetime)
         assert(end_datetime - start_datetime < timedelta(hours=24))
-        assert(percent is not None or rate is not None)
+        assert(percent is not None or absolute is not None)
 
         start_time = start_datetime.time()
         end_time = end_datetime.time()
@@ -89,16 +108,16 @@ class GlucoDynEventHistory(object):
         # If the requested timestamps cross a day boundary, return the combination of each single-day call
         if start_time > end_time:
             return self._basal_adjustments_in_range(
-                    start_datetime,
-                    start_datetime.replace(hour=23, minute=59, second=59),
-                    percent=percent,
-                    rate=rate
-                ) + \
+                start_datetime,
+                start_datetime.replace(hour=23, minute=59, second=59),
+                percent=percent,
+                absolute=absolute
+            ) + \
                 self._basal_adjustments_in_range(
                     end_datetime.replace(hour=0, minute=0, second=0),
                     end_datetime,
                     percent=percent,
-                    rate=rate
+                    absolute=absolute
                 )
 
         temp_basal_events = []
@@ -122,16 +141,16 @@ class GlucoDynEventHistory(object):
             event = {
                 "etype": "tempbasal",
                 "time": t0,
-                "t1": t0,
-                "t2": t1
+                T0: t0,
+                T1: t1
             }
 
             # Find the delta of the new rate
-            new_rate = rate
+            rate = absolute
             if percent is not None:
-                new_rate = basal_rate["rate"] * percent / 100.0
+                rate = basal_rate["rate"] * percent / 100.0
 
-            event["dbdt"] = (new_rate - basal_rate["rate"]) / 60.0
+            event["dbdt"] = (rate - basal_rate["rate"]) / 60.0
 
             temp_basal_events.append(event)
 
@@ -156,8 +175,8 @@ class GlucoDynEventHistory(object):
             return [{
                 "etype": "tempbasal",
                 "time": t0,
-                "t1": t0,
-                "t2": t0 + duration,
+                T0: t0,
+                T1: t0 + duration,
                 "dbdt": rate
             }]
         elif event["amount"] > 0:
@@ -188,15 +207,36 @@ class GlucoDynEventHistory(object):
             }]
 
     def _decode_pumpresume(self, event):
-        start_datetime = self._suspend_datetime or (self.zero_datetime - timedelta(hours=self.sim_hours))
-        return self._basal_adjustments_in_range(start_datetime, event["timestamp"], percent=0)
+        self._resume_datetime = event["timestamp"]
 
     def _decode_pumpsuspend(self, event):
-        self._suspend_datetime = event["timestamp"]
+        end_datetime = self._resume_datetime or (self.zero_datetime +
+                                                 timedelta(hours=self.sim_hours))
+        return self._basal_adjustments_in_range(event["timestamp"], end_datetime, percent=0)
 
     def _decode_tempbasal(self, event):
-        # Since only one tempbasal runs at a time, we have to consider the cancellation event, which is logged as a "0" rate and "0" duration
-        pass
+        if self._temp_basal_duration is not None:
+            start_datetime = event["timestamp"]
+            end_datetime = start_datetime + timedelta(minutes=self._temp_basal_duration)
+            t0 = self._relative_time(start_datetime)
+            t1 = self._relative_time(end_datetime)
+            self._temp_basal_duration = None
+
+            # Since only one tempbasal runs at a time, we may have to revise the last one we entered
+            if self._last_temp_basal_event is not None and self._last_temp_basal_event[T0] < t1:
+                t1 = self._last_temp_basal_event[T0]
+                end_datetime = start_datetime + timedelta(minutes=t1 - t0)
+
+            if t1 - t0 > 0 and event["rate"] > 0:
+                events = self._basal_adjustments_in_range(
+                    start_datetime, end_datetime, **{event["temp"]: event["rate"]}
+                )
+
+                self._last_temp_basal_event = events[0]
+
+                return events
+            else:
+                self._last_temp_basal_event = None
 
     def _decode_tempbasalduration(self, event):
-        pass
+        self._temp_basal_duration = event["duration (min)"]
