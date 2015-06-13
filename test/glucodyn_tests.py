@@ -278,5 +278,61 @@ class GlucoDynEventHistoryTestCase(unittest.TestCase):
 
         self.assertListEqual([], geh.uevent)
 
+    def test_resume_without_suspend(self):
+        pump_history = [
+            {
+                "_type": "PumpResume",
+                "_description": "PumpResume 2015-06-06T20:50:01 head[2], body[0] op[0x1f]",
+                "date": 1433620201000.0,
+                "timestamp": datetime(2015, 6, 6, 20, 50, 01),
+                "_body": "",
+                "_head": "1f20",
+                "_date": "41b214060f"
+            }
+        ]
+
+        geh = GlucoDynEventHistory(
+            pump_history,
+            self.basal_rate_schedule,
+            zero_datetime=datetime(2015, 6, 6, 21),
+            sim_hours=1
+        )
+
+        self.assertListEqual([{
+            "etype": "tempbasal",
+            "time": -60,
+            "t1": -60,
+            "t2": -10,
+            "dbdt": -0.8 / 60.0
+        }], geh.uevent)
+
+    def test_suspend_without_resume(self):
+        pump_history = [
+            {
+                "_type": "PumpSuspend",
+                "_description": "PumpSuspend 2015-06-06T20:49:57 head[2], body[0] op[0x1e]",
+                "date": 1433620197000.0,
+                "timestamp": datetime(2015, 6, 6, 20, 49, 57),
+                "_body": "",
+                "_head": "1e01",
+                "_date": "79b114060f"
+            }
+        ]
+
+        geh = GlucoDynEventHistory(
+            pump_history,
+            self.basal_rate_schedule,
+            zero_datetime=datetime(2015, 6, 6, 21),
+            sim_hours=1
+        )
+
+        self.assertListEqual([{
+            "etype": "tempbasal",
+            "time": -10,
+            "t1": -10,
+            "t2": 60,
+            "dbdt": -0.8 / 60.0
+        }], geh.uevent)
+
 if __name__ == "__main__":
     unittest.main()
