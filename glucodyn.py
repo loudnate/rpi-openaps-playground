@@ -113,12 +113,12 @@ class GlucoDynEventHistory(object):
                 percent=percent,
                 absolute=absolute
             ) + \
-                self._basal_adjustments_in_range(
-                    end_datetime.replace(hour=0, minute=0, second=0),
-                    end_datetime,
-                    percent=percent,
-                    absolute=absolute
-                )
+            self._basal_adjustments_in_range(
+                end_datetime.replace(hour=0, minute=0, second=0),
+                end_datetime,
+                percent=percent,
+                absolute=absolute
+            )
 
         temp_basal_events = []
         basal_rates = self.basal_rates_in_range(start_time, end_time)
