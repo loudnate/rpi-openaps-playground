@@ -1,6 +1,8 @@
 from datetime import timedelta
 from flask import Flask
 from flask import render_template
+from werkzeug.contrib.cache import SimpleCache
+cache = SimpleCache()
 
 from glucodyn import GlucoDynEventHistory
 import pump
@@ -8,7 +10,26 @@ import pump
 app = Flask(__name__, static_url_path='')
 
 
+from functools import wraps
+from flask import request
+
+def cached(timeout=5 * 60, key='view/%s'):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            cache_key = key % request.path
+            rv = cache.get(cache_key)
+            if rv is not None:
+                return rv
+            rv = f(*args, **kwargs)
+            cache.set(cache_key, rv, timeout=timeout)
+            return rv
+        return decorated_function
+    return decorator
+
+
 @app.route("/")
+@cached(timeout=60)
 def glucodyn():
     """Renders a GlucoDyn prediction graph from the current pump settings and recent history"""
     bginitial, pump_datetime = pump.glucose_level_at_datetime(pump.clock_datetime())
