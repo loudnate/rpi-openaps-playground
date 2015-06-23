@@ -3,9 +3,9 @@ Interface for openaps device "pump"
 
 TODO: Document exceptions
 """
-from collections import deque
+from datetime import datetime
 from datetime import timedelta
-from dateutil import parser
+from dateutil.parser import parse
 from itertools import cycle
 import json
 
@@ -99,14 +99,13 @@ def carb_ratio_at_time(pump_time):
 _proxy_cache(_carb_ratio_schedule, carb_ratio_at_time)
 
 
-def clock_datetime():
+def read_clock():
     """Returns the current date and time from the pump's system clock
 
     :return:
-    :rtype: datetime.datetime
+    :rtype: str
     """
-    pump_datetime_iso = json.loads(_pump_output("read_clock"))
-    return parser.parse(pump_datetime_iso)
+    return json.loads(_pump_output("read_clock"))
 
 
 @lru_cache(maxsize=1)
@@ -129,7 +128,8 @@ def _latest_sensor_glucose_entry_in_range(from_datetime, to_datetime):
     )
     last_page = glucose_pages_dict["end"]
     glucose_history = json.loads(_pump_output("read_glucose_data", str(last_page)))
-    glucose_iterator = (x for x in reversed(glucose_history) if x["name"] in ("GlucoseSensorData", "CalBGForGH"))
+    glucose_iterator = (x for x in reversed(glucose_history) if x["name"] in ("GlucoseSensorData",
+                                                                              "CalBGForGH"))
 
     last_datetime = to_datetime
 
@@ -139,7 +139,7 @@ def _latest_sensor_glucose_entry_in_range(from_datetime, to_datetime):
         except StopIteration:
             break
 
-        last_datetime = parser.parse(glucose_dict["date"])
+        last_datetime = parse(glucose_dict["date"])
         amount = glucose_dict.get("sgv", glucose_dict.get("amount", 0))
         if amount > 0 and from_datetime <= last_datetime <= to_datetime:
             return glucose_dict
@@ -159,7 +159,7 @@ def _latest_meter_glucose_entry_in_range(from_datetime, to_datetime):
 
     for history_dict in [h for h in pump_history if h.get("_type") == "CalBGForPH"]:
         amount = history_dict.get("amount", 0)
-        if amount > 0 and from_datetime <= history_dict["timestamp"] <= to_datetime:
+        if amount > 0 and from_datetime <= parse(history_dict["timestamp"]) <= to_datetime:
             return history_dict
 
 
@@ -180,16 +180,17 @@ def glucose_level_at_datetime(pump_datetime):
     glucose_history_dict = _latest_sensor_glucose_entry_in_range(from_datetime, to_datetime) or {}
     amount = glucose_history_dict.get("sgv", glucose_history_dict.get("amount"))
     if amount is not None:
-        glucose_datetime = parser.parse(glucose_history_dict["date"])
+        glucose_datetime = glucose_history_dict["date"]
     else:
-        glucose_history_dict = _latest_meter_glucose_entry_in_range(from_datetime, to_datetime) or {}
+        glucose_history_dict = _latest_meter_glucose_entry_in_range(from_datetime,
+                                                                    to_datetime) or {}
         amount = glucose_history_dict.get("amount")
         glucose_datetime = glucose_history_dict.get("timestamp")
 
     if amount is not None:
-        return (amount, glucose_datetime)
+        return amount, parse(glucose_datetime)
     else:
-        return (amount, None)
+        return amount, None
 
 
 _proxy_cache(_latest_sensor_glucose_entry_in_range, glucose_level_at_datetime)
@@ -199,27 +200,22 @@ _proxy_cache(_latest_sensor_glucose_entry_in_range, glucose_level_at_datetime)
 def _history_in_range(from_datetime, to_datetime):
     next_page_num = 0
     last_datetime = to_datetime
-    history_queue = deque()
+    history = []
     # Expect entries may be out-of-order up to this amount
     time_discrepancy = timedelta(minutes=5)
-    results = []
 
-    while from_datetime <= last_datetime + time_discrepancy:
-        # If we're out of entries, get the next page
-        if len(history_queue) == 0:
-            history_queue.extend(json.loads(_pump_output("read_history_data", str(next_page_num))))
-            next_page_num += 1
-        entry = history_queue.popleft()
-        try:
-            last_datetime = parser.parse(entry.get("timestamp"))
-        except (AttributeError, ValueError):
-            pass
-        entry["timestamp"] = last_datetime
+    while last_datetime + time_discrepancy > from_datetime:
+        history.extend(json.loads(_pump_output("read_history_data", str(next_page_num))))
+        next_page_num += 1
 
-        if last_datetime >= from_datetime:
-            results.append(entry)
+        if len(history) > 0:
+            last_entry = history[-1]
+            try:
+                last_datetime = parse(last_entry.get("timestamp"))
+            except (AttributeError, ValueError):
+                pass
 
-    return results
+    return history
 
 
 def history_in_range(from_datetime, to_datetime):

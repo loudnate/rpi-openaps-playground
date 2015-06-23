@@ -173,9 +173,9 @@
     <script type="text/javascript">
       userdata = {{ userdata|tojson|safe }};
 
-	  {% for event in history.uevent %}
+	  {% for event in uevent %}
 		  uevent.push({{ event|tojson|safe }});
-		  addEventHistory()
+		  addEventHistory();
 	  {% endfor %}
 
       reloadGraphData();
@@ -188,8 +188,8 @@ userdata = {{ userdata|tojson }}
 
 {{ cache_info|pprint(true) }}
 
-history.basal_schedule = {{ history.basal_schedule|pprint(true) }}
-history.raw = {{ history.raw|pprint(true) }}
+basal_schedule = {{ basal_schedule|pprint(true) }}
+pump_history = {{ pump_history|pprint(true) }}
       </pre>
     </div>
 
