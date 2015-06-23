@@ -79,7 +79,9 @@ def glucodyn():
             zero_datetime=glucose_datetime
         ).normalized_records
 
-        uevent = GlucoDynEventHistory(records).uevent
+        glucodyn = GlucoDynEventHistory(records)
+
+        settings["simlength"] += (glucodyn.latest_end_at / 60.0)
 
         return render_template(
             'glucodyn.html',
@@ -87,7 +89,7 @@ def glucodyn():
             cache_info=pump.cache_info(),
             pump_history=pump_history,
             basal_schedule=basal_schedule,
-            uevent=uevent
+            uevent=glucodyn.uevent
         )
 
 if __name__ == "__main__":

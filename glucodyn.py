@@ -28,6 +28,7 @@ class GlucoDynEventHistory(object):
         :type pump_records: list(dict)
         """
         self.uevent = []
+        self.latest_end_at = 0
         self.raw = pump_records
 
         for event in pump_records:
@@ -39,6 +40,9 @@ class GlucoDynEventHistory(object):
         amount = event[_AMOUNT]
         unit = event[_UNIT]
         description = event[_DESCRIPTION]
+
+        if end_at > self.latest_end_at:
+            self.latest_end_at = end_at
 
         if unit == Unit.units_per_hour:
             return {
