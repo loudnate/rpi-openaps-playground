@@ -47,8 +47,6 @@ function reloadGraphData() {
 
     }
 
-    RecommendedMaxSimTime(0);
-
     var hAxisTitle = 'Time (min)';
 
     if (userdata.pump_time_string) {

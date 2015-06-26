@@ -54,7 +54,7 @@
 
 //g is time in minutes from bolus event, idur=insulin duration
 //walsh iob curves
-function iob(g,idur) {  
+function iob(g,idur) {
   if(g<=0.0) {
     tot=100.0
   } else if (g>=idur*60.0) {
@@ -68,19 +68,19 @@ function iob(g,idur) {
       tot=-2.95e-8*Math.pow(g,4)+2.32e-5*Math.pow(g,3)-5.55e-3*Math.pow(g,2)+4.49e-2*g+99.3
     } else if (idur==6) {
       tot=-1.493e-8*Math.pow(g,4)+1.413e-5*Math.pow(g,3)-4.095e-3*Math.pow(g,2)+6.365e-2*g+99.7
-    } 
-  }          
+    }
+  }
   return(tot);
 }
 
 //simpsons rule to integrate IOB - can include sf and dbdt as functions of tstar later - assume constants for now
-//integrating over flux time tstar 
+//integrating over flux time tstar
 function intIOB(x1,x2,idur,g) {
   var integral;
   var dx;
   var nn=50; //nn needs to be even
   var ii=1;
-  
+
   //initialize with first and last terms of simpson series
   dx=(x2-x1)/nn;
   integral=iob((g-x1),idur)+iob(g-(x1+nn*dx),idur);
@@ -94,23 +94,23 @@ function intIOB(x1,x2,idur,g) {
   return(integral);
 
 }
-            
+
 //scheiner gi curves fig 7-8 from Think Like a Pancreas, fit with a triangle shaped absorbtion rate curve
 //see basic math pdf on repo for details
 //g is time in minutes,gt is carb type
-function cob(g,ct) {  
-  
+function cob(g,ct) {
+
   if(g<=0) {
     tot=0.0
   } else if (g>=ct) {
     tot=1.0
   } else if ((g>0)&&(g<=ct/2.0)) {
     tot=2.0/Math.pow(ct,2)*Math.pow(g,2)
-  } else 
+  } else
     tot=-1.0+4.0/ct*(g-Math.pow(g,2)/(2.0*ct))
     return(tot);
 }
-    
+
 function deltatempBGI(g,dbdt,sensf,idur,t1,t2) {
   return -dbdt*sensf*((t2-t1)-1/100*intIOB(t1,t2,idur,g));
 }
@@ -147,31 +147,28 @@ function GlucodynStats(bg) {
   }
   //calc sd
   var sd=Math.pow((dsq/bg.length),0.5);
-  
+
   var result = [];
-  result[0] = averagebg;        
+  result[0] = averagebg;
   result[1] = sd;
   result[2] = min;
   result[3] = max;
-  
+
   $("#stats_avg").text(Math.round(averagebg));
   $("#stats_min").text(Math.round(min));
   $("#stats_max").text(Math.round(max));
   $("#stats_std").text(Math.round(sd));
-          
+
   return result;
 
-} 
-  
-//user parameters - carb ratio, sensitivity factor, insulin duration      
+}
+
+//user parameters - carb ratio, sensitivity factor, insulin duration
 var userdata = {cratio:0,sensf:0.0,idur:1,bginitial:0,stats:0,simlength:1,inputeffect:1};
 
 var uevent = [];
-var uevent_counter = 0;
 
 var simt = userdata.simlength*60; //total simulation time in min from zero
-
-var simtimeadjustrecommendation = 1 // variable to allow user to receive simulation time recommendations ( valid for 1 session )
 
 var n=75; //points in simulation
 var dt=simt/n;
@@ -184,31 +181,4 @@ for (i=0;i<n;i++) {
    simbgc[i]=0.0;
    simbgi[i]=0.0;
     simbgi[i]=userdata.bginitial;
-}
-
-// Max Sim Time
-function RecommendedMaxSimTime(set_trigger) {
-  
-  if ( uevent.length > 0 && simtimeadjustrecommendation == 1 ) {
-    
-    var maxsimtime=0;
-    for (var ii=0;ii<uevent.length;ii++) {
-      var etime=0;
-
-      if(uevent[ii].etype=="bolus") {etime=uevent[ii].time+userdata.idur*60;}
-      if (uevent[ii].etype=="carb") {etime=uevent[ii].time+uevent[ii].ctype;}
-      if(uevent[ii].etype=="tempbasal") {etime=uevent[ii].t2+userdata.idur*60;}
-      if (etime>maxsimtime) {maxsimtime=etime;}    
-    }
-  
-    if ( set_trigger == 1 ) {
-    
-      userdata.simlength = Math.ceil(maxsimtime/60);
-    
-      reloadSliders();
-      reloadGraphData();          
-      
-    }
-    
-  }
 }
