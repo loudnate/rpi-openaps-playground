@@ -70,7 +70,6 @@
 		<!-- FLAT UI END-->
 
 		<!-- Google Charts -->
-		<script src="js/jquery.min.js"></script>
 		<script type="text/javascript" src="https://www.google.com/jsapi?autoload={'modules':[{'name':'visualization','version':'1','packages':['corechart']}]}"></script>
 		<!-- Google Charts END -->
 
@@ -182,7 +181,7 @@
     </script>
 
     <div class="container">
-      <a href="javascript:$('#debug-info').toggleClass('hidden')">Debug info</a>
+      <a href="javascript:document.getElementById('debug-info').classList.toggle('hidden')">Debug info</a>
       <pre id="debug-info" class="hidden">
 userdata = {{ userdata|tojson }}
 

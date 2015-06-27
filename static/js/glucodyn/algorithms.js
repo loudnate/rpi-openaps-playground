@@ -154,10 +154,10 @@ function GlucodynStats(bg) {
   result[2] = min;
   result[3] = max;
 
-  $("#stats_avg").text(Math.round(averagebg));
-  $("#stats_min").text(Math.round(min));
-  $("#stats_max").text(Math.round(max));
-  $("#stats_std").text(Math.round(sd));
+    document.getElementById("stats_avg").innerText = Math.round(averagebg).toString();
+    document.getElementById("stats_min").innerText = Math.round(min).toString();
+    document.getElementById("stats_max").innerText = Math.round(max).toString();
+    document.getElementById("stats_std").innerText = Math.round(sd).toString();
 
   return result;
 
