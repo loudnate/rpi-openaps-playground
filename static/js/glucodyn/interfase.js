@@ -60,7 +60,7 @@ function reloadGraphData() {
     if ( userdata.stats == 1 ) {
 
         // Show stats table
-        $("#statistics_container").removeClass("hidden");
+        document.getElementById("statistics_container").classList.remove("hidden");
 
         if ( userdata.inputeffect == 1 ) {
 
@@ -156,11 +156,11 @@ function reloadGraphData() {
     } else {
 
         // Hide stats table
-        $("#statistics_container").addClass("hidden");
-        $("#stats_avg").text(Math.round("NA"));
-        $("#stats_min").text(Math.round("NA"));
-        $("#stats_max").text(Math.round("NA"));
-        $("#stats_std").text(Math.round("NA"));
+        document.getElementById("statistics_container").classList.add("hidden");
+        document.getElementById("stats_avg").innerText = "N/A";
+        document.getElementById("stats_min").innerText = "N/A";
+        document.getElementById("stats_max").innerText = "N/A";
+        document.getElementById("stats_std").innerText = "N/A";
 
         if ( userdata.inputeffect == 1 ) {
 
@@ -265,18 +265,21 @@ function addEventHistory() {
         description_b = "From min "+ event.t1 +" to min "+ event.t2 +""
     }
 
-    $("#input_history").append("<div class='row' id='uevent_" + event_id +"'><div class='col-xs-6'>" + description + "</div><div class='col-xs-6'>" + description_b + "</div></div>");
+    var row = document.createElement("div");
+    row.id = "uevent_" + event_id;
+    row.className = "row";
+    row.innerHTML = "<div class='col-xs-6'>" + description + "</div><div class='col-xs-6'>" + description_b + "</div>";
+    document.getElementById("input_history").appendChild(row);
 
-    $("#input_history_container").removeClass("hidden");
+    document.getElementById("input_history_container").classList.remove("hidden");
 
 }
 
 // Document Ready
-$(document).ready(function(){
+document.addEventListener('readystatechange', function() {
     reloadGraphData();
 
-    $(window).resize(function(){
-        reloadGraphData();
-    });
-
+    window.addEventListener('resize', function() {
+        reloadGraphData()
+    })
 });
