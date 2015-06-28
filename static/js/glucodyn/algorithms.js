@@ -178,7 +178,7 @@ function GlucodynStats(bg) {
             var hourlyValue = value / hoursNeeded;
             var hourlyPercent = (hourlyValue + current_basal_rate.rate) / current_basal_rate.rate;
 
-            dose = "TempBasal: " + Math.round(hourlyPercent) + "% for " + hoursNeeded + " hours";
+            dose = "TempBasal: " + Math.round(hourlyPercent * 100) + "% for " + hoursNeeded + " hours";
         }
 
     } else if (final < targetBgMin) {
@@ -194,7 +194,7 @@ function GlucodynStats(bg) {
             var hourlyValue = value / hoursNeeded;
             var hourlyPercent = (hourlyValue + current_basal_rate.rate) / current_basal_rate.rate;
 
-            dose = "TempBasal: " + Math.round(hourlyPercent) + "% for " + hoursNeeded + " hours";
+            dose = "TempBasal: " + Math.round(hourlyPercent * 100) + "% for " + hoursNeeded + " hours";
         }
     }
 
