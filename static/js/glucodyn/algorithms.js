@@ -159,49 +159,6 @@ function GlucodynStats(bg) {
     document.getElementById("stats_max").innerText = Math.round(max).toString();
     document.getElementById("stats_std").innerText = Math.round(sd).toString();
 
-    // Dosing recommendations
-    var initial = userdata.bginitial;
-    var final = bg[bg.length - 1];
-
-    var dose = null;
-
-    if (final > targetBgMax) {
-        var value = (min - targetBgMax) / userdata.sensf;
-
-        if (initial > targetBgMax) {
-            // Correction bolus
-            dose = "Bolus: " + Math.round(value * 10) / 10 + "U";
-        } else {
-            // Correction tempbasal
-            var maxHourlyRate = (current_basal_rate.rate * (maxTempBasalPercent / 100)) - current_basal_rate.rate;
-            var hoursNeeded = Math.ceil(value / maxHourlyRate * 2) / 2;
-            var hourlyValue = value / hoursNeeded;
-            var hourlyPercent = (hourlyValue + current_basal_rate.rate) / current_basal_rate.rate;
-
-            dose = "TempBasal: " + Math.round(hourlyPercent * 100) + "% for " + hoursNeeded + " hours";
-        }
-
-    } else if (final < targetBgMin) {
-        if (initial < targetBgMin) {
-            // Correction food
-            var carbs = (targetBgMin - initial) / userdata.sensf * userdata.cratio;
-            dose = "Eat: " + carbs + "g";
-        } else {
-            // Correction tempbasal
-            var minHourlyRate = 0 - current_basal_rate.rate;
-            var value = (min - targetBgMin) / userdata.sensf;
-            var hoursNeeded = Math.ceil(value / minHourlyRate * 2) / 2;
-            var hourlyValue = value / hoursNeeded;
-            var hourlyPercent = (hourlyValue + current_basal_rate.rate) / current_basal_rate.rate;
-
-            dose = "TempBasal: " + Math.round(hourlyPercent * 100) + "% for " + hoursNeeded + " hours";
-        }
-    }
-
-    if (dose) {
-        document.getElementById("stats_dose").innerText = dose;
-    }
-
   return result;
 
 }

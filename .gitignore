@@ -58,5 +58,4 @@ docs/_build/
 target/
 
 ## Third-party static files
-static/js/jquery.min.js
 static/css/bootstrap.min.css

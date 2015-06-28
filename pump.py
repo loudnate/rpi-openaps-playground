@@ -274,9 +274,10 @@ def _pump_output(*args):
 
     :raises CalledProcessError:
     """
+    from subprocess import STDOUT
     from subprocess import check_output
 
     args_list = ["openaps", "use", "pump"]
     args_list.extend(args)
 
-    return check_output(args_list)
+    return check_output(args_list, stderr=STDOUT)
