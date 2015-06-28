@@ -68,7 +68,7 @@ def glucodyn():
     except CalledProcessError as e:
         raise Exception('{} returned status {}: {}'.format(e.cmd, e.returncode, e.output))
     else:
-        records = NormalizeRecords(
+        parser = NormalizeRecords(
             ResolveHistory(
                 ReconcileHistory(
                     CleanHistory(pump_history, start_datetime=start_datetime).clean_history
@@ -77,11 +77,15 @@ def glucodyn():
             ).resolved_records,
             basal_schedule=basal_schedule,
             zero_datetime=glucose_datetime
-        ).normalized_records
+        )
 
-        glucodyn = GlucoDynEventHistory(records)
+        gdeh = GlucoDynEventHistory(parser.normalized_records)
+        current_basal_rate = parser.basal_rates_in_range(
+            pump_datetime.time(),
+            (pump_datetime + timedelta(hours=1)).time()
+        )[0]
 
-        settings["simlength"] += (glucodyn.latest_end_at / 60.0)
+        settings["simlength"] += (gdeh.latest_end_at / 60.0)
 
         return render_template(
             'glucodyn.html',
@@ -89,7 +93,8 @@ def glucodyn():
             cache_info=pump.cache_info(),
             pump_history=pump_history,
             basal_schedule=basal_schedule,
-            uevent=glucodyn.uevent
+            uevent=gdeh.uevent,
+            current_basal_rate=current_basal_rate
         )
 
 if __name__ == "__main__":
